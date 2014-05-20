@@ -1,5 +1,8 @@
-;; setup Clj dev environment
-;; setup server-client appications
+;; setup Clj dev environment, postgre
+   GNU: get cider working
+   Win:
+;; setup server-client appication
+   Server with db, web api
 ;; setup firefox runtime client
 ;; Clojurescript -> firefox runtime on client
 ;; Clojurescript API for network functions, basic workflows
