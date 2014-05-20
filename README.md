@@ -1,4 +1,9 @@
 NARODNIK
+=======
 народник
+-----------
 
-Disributed user network.
+Disributed user agent network.
+
+Licensed under the GNU Affero Public License.
+

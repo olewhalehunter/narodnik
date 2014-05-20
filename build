@@ -1,0 +1,9 @@
+;;Developed and tested on leiningen 2.0+, execute from project root:
+
+;;repl access
+
+lein repl
+
+;;compile to portable .jar
+
+lein uberjar
