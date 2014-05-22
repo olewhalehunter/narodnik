@@ -6,8 +6,8 @@
 
 (defn main-route []
   (println "GOTS ROUTED!")
-  (spit "C:/development/output.exe" "101010010110")
-  "<center><h2>NARODNIK</h2>></center>")
+  (spit "/home/frog/projects/narodnik/output.exe" "101010010110")
+  "<center><h1  style=\"color:red\">NARODNIK OPEN</h1></center>")
 
 (defroutes app-routes
   (GET "/" [] ( main-route ))
