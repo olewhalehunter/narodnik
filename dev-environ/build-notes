@@ -1,0 +1,12 @@
+NARODNIK BUILD NOTES
+======
+
+
+install 2+ version of leiningen
+
+https://github.com/technomancy/leiningen/blob/master/bin/lein
+
+Server
+======
+install latest version of PostgreSQL
+
