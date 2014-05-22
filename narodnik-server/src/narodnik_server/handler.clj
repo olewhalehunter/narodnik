@@ -7,7 +7,7 @@
 (defn main-route []
   (println "GOTS ROUTED!")
   (spit "c:/development/output.exe" "101010010110")
-  "<center><h1  style=\"color:red\">NARODNIK OPEN</h1></center>")
+  "<center><h1  style=\"color:red\">YES NARODNIK!</h1></center>")
 
 (defroutes app-routes
   (GET "/" [] ( main-route ))
