@@ -10,12 +10,21 @@ See files in \dev-environ.
 ## TO-DO
 
 ### narodnik-client
-
-Cjs -> firefox runtime
+firefox .xsi addon installer
+Cjs -> firefox runtime from client
+    
 
 ### narodnik-server
-
+dispatch thread vs slave thread
+schema design
+server groups
+client groups/subscriptions
 event-eval dispatch queue
+
+### installer
+
+linux install script
+windows msi
 
 ### design notes
 

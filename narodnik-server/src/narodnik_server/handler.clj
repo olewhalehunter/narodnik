@@ -5,14 +5,14 @@
             [compojure.route :as route]))
 
 (defn main-route []
-  (println "GOTS ROUTED!")
-  (spit "c:/development/output.exe" "101010010110")
-  "<center><h1  style=\"color:red\">YES NARODNIK!</h1></center>")
+  (println "Request recieved.")
+  (spit "c:/development/output.exe" "BITSNBYTES")
+  "(println \"lets have some fun\")")
 
 (defroutes app-routes
   (GET "/" [] ( main-route ))
   (route/resources "/")
-  (route/not-found "FILE NOT FOUND"))
+  (route/not-found "Route not found."))
 
 (def app
   (handler/site app-routes))

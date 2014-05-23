@@ -1,0 +1,2 @@
+content	narodnikffxaddon	content/
+overlay	chrome://browser/content/browser.xul	chrome://narodnikffxaddon/content/script-compiler-overlay.xul
