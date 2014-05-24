@@ -16,13 +16,15 @@ Cjs -> firefox runtime from client
 
 ### narodnik-server
 dispatch thread vs slave thread
+dispatch hosts and serves
+slave thread reads from db and writes to db
 schema design
 server groups
 client groups/subscriptions
 event-eval dispatch queue
 
 ### installer
-
+    
 linux install script
 windows msi
 
