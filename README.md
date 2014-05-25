@@ -11,14 +11,21 @@ See files in \dev-environ.
 
 ### narodnik-client
 
-C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default
+NO CLS, template generated js in native clj scripts
+write-userscript templating fn
 
-firefox .xsi addon installer
+
+create sample workflow packages
+build up with backend
+
+notes...
+
+C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default
 
 ### Windows
 "C:\Program Files (x86)\Mozilla Firefox\"
 C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default\scriptish_scripts\testjs
-Cjs -> firefox runtime from client
+
     
 
 ### narodnik-server
