@@ -1,6 +1,5 @@
 (ns narodnik-client.core
-  (:require [org.httpkit.client :as http]
-            [clojure.browser.repl as :as repl]))
+  (:require [org.httpkit.client :as http]))
 
 (defn handle-response [body]
   (println "Recieved:" body)
@@ -21,7 +20,6 @@
 
 (defn -main
   [& args]
-  (repl/connect "http://localhost:9000/repl")
   (.start (Thread. thread))
   (println "NARODNIK CLIENT!"))
 

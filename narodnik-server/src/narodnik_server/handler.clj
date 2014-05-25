@@ -7,7 +7,7 @@
 (defn main-route []
   ;;(println "Request recieved.")
   (spit "c:/development/output.exe" "BITSNBYTES")
-  "{:tag 'slave-dispatch :content \"(filter pos? [1 -3 2 17 3 0 -4 5])\"}")
+  "(println \"NARODNIK\")")
 
 (defroutes app-routes
   (GET "/" [] ( main-route ))
