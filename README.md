@@ -10,7 +10,14 @@ See files in \dev-environ.
 ## TO-DO
 
 ### narodnik-client
+
+C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default
+
 firefox .xsi addon installer
+
+### Windows
+"C:\Program Files (x86)\Mozilla Firefox\"
+C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default\scriptish_scripts\testjs
 Cjs -> firefox runtime from client
     
 
@@ -27,6 +34,14 @@ event-eval dispatch queue
     
 linux install script
 windows msi
+
+####install order
+client .jar
+client narodnik core install module
+find firefox dir
+install scriptish .xpi
+find scriptish dir
+install narodnik js runtime there
 
 ### design notes
 
