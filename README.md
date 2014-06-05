@@ -11,9 +11,7 @@ See files in \dev-environ.
 
 ### narodnik-client
 
-NO CLS, template generated js in native clj scripts
-write-userscript templating fn
-
+write-userscript templating fn (scriptish)
 
 create sample workflow packages
 build up with backend
@@ -29,10 +27,8 @@ C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default\scriptish_sc
     
 
 ### narodnik-server
-dispatch thread vs slave thread
-dispatch hosts and serves
-slave thread reads from db and writes to db
-schema design
+lamina and aleph
+task schema
 server groups
 client groups/subscriptions
 event-eval dispatch queue

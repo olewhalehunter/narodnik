@@ -7,7 +7,7 @@
 (defn main-route []
   ;;(println "Request recieved.")
   (spit "c:/development/output.exe" "BITSNBYTES")
-  "(println \"NARODNIK\")")
+  "(println \"NARODNIK SERVER!\")")
 
 (defroutes app-routes
   (GET "/" [] ( main-route ))
