@@ -4,8 +4,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [compojure "1.1.6"]
                  [aleph "0.3.2"]]
-  :plugins [[lein-ring "0.8.10"]]
-  :ring {:handler narodnik-server.handler/app}
+  :main narodnik-server.handler
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                        [ring-mock "0.1.5"]]}})
+                        ]}})
