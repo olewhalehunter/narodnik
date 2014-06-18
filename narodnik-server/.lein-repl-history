@@ -1,0 +1,49 @@
+(udp-socket {:port 10000})
+(use 'aleph.udp)
+(udp-socket {:port 10000})
+(def future @(udp-socket {:port 10000}))
+(def future-test @(udp-socket {:port 10000}))
+(def futdata @(udp-socket {:port 10000}))
+(def futdata @(udp-socket {:port 322}))
+(udp-socket {:port 322})
+(udp-socket {:port 1})
+(udp-socket {:port 99})
+(udp-socket {:port 23})
+exit
+(use 'aleph.udp)
+(use 'lamina.core)
+defn message-thread []
+  (println "sending message...")
+  (Thread/sleep 500)
+  (let 
+      [outbound @(udp-object-socket {:port 9999})
+       message {:host "localhost", 
+              :port 10200, 
+              :message "hello"}]
+    (enqueue outbound message)
+    (close outbound))
+  (message-thread)
+)
+(defn message-thread []
+  (println "sending message...")
+  (Thread/sleep 500)
+  (let 
+      [outbound @(udp-object-socket {:port 9999})
+       message {:host "localhost", 
+              :port 10200, 
+              :message "hello"}]
+    (enqueue outbound message)
+    (close outbound))
+  (message-thread)
+)
+  (.start (Thread. message-thread))
+(read-channel (udp-object-socket {:port 10200}))
+(receive-all (udp-object-socket {:port 10200}))
+(receive-all @(udp-object-socket {:port 10200}))
+(Exit)
+lein repl
+(
+exit
+(exit)
+)
+(exit)

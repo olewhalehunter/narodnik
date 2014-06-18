@@ -27,7 +27,8 @@ C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default\scriptish_sc
     
 
 ### narodnik-server
-lamina and aleph
+
+udp handle/watch/dispatch threads
 task schema
 server groups
 client groups/subscriptions
