@@ -4,17 +4,27 @@
         [lamina core api]))
 
 (defn message-thread []
-  (let [a @(udp-object-socket {:port 2000})
-        b @(udp-object-socket)
-        text-msg "THIS IS THE PACKET"]
+  (let [inbound-channel 
+        @(udp-object-socket {:port 10200})
+        outbound-channel 
+        @(udp-object-socket)
+        text-msg "(println \":)\")"]
     (try
-      (enqueue b {:message text-msg :host "localhost" :port 2000})
-      (println (:message (wait-for-message a 2000)))
+      (enqueue outbound-channel 
+               {:message text-msg 
+                :host "localhost" 
+                :port 10200})
+      (eval (read-string
+             (:message (wait-for-message 
+                          inbound-channel 12000))))
       (finally
-        (close b)
-        (close a)
+        (close inbound-channel)
+        (close outbound-channel)
+        (System/exit 0)
       ))))
+
 
 (defn -main [& args]
   (.start (Thread. message-thread))
-  (println "NARODNIK SERVER!"))
+  (println "NARODNIK SERVER!")
+)
