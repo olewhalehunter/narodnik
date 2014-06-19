@@ -3,27 +3,8 @@
    [aleph.udp]
    [gloss core io]
    [lamina core api]
+   [narodnik-server data]
 ))
-
-(require '[clojure.java.jdbc :as sql])
-
-(defn init-db []
-  (let [db-host "localhost"
-        db-port 5432
-        db-name "narodnik"]
-    
-    (def db {
-             :subprotocol "postgresql"
-             :subname (str "//" db-host ":" db-port "/" db-name)
-             :user "postgres"
-             :password "password"}))
-
-  (sql/db-do-commands 
-   db 
-   (sql/create-table-ddl :machines 
-                         [:name :text]
-                         [:id :bigint])))
-
 
 (defn handler-thread []
   "For updating status updates 
