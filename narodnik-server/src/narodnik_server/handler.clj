@@ -14,13 +14,10 @@
         timeout 4000]
 
       (Thread/sleep timeout)
-      (println "Starting inbound...")
-      (eval (read-string
-             (:message (wait-for-message 
-                        inbound-channel 12000))))
+      (eval (read-string (:message (wait-for-message inbound-channel 12000))))
+
       (close inbound-channel))
   (handler-thread))
-
 
 (defn task-assign-thread []
   "testing handler thread"
@@ -31,7 +28,7 @@
         host "localhost"
         text-msg "(println \"NARODNIK IS GO\")"]
 
-    (Thread/sleep task-handler-interval)
+     (Thread/sleep task-handler-interval)
 
     (let [outbound-channel @(udp-object-socket)
           inbound-channel @(udp-object-socket {:port inbound-port})]
@@ -47,10 +44,22 @@
 
 
 (defn -main [& args]
+  (println "Narodnik starting up...")
   (init-db)
   (.start (Thread. task-assign-thread)) 
   (.start (Thread. handler-thread))
+  (println "NARODNIK SERVER:")
+  (loop [lines (repeatedly read-line)]
+    (let [input (first lines)]
+      (when (not= "exit" input)
+        (try 
+          (load-string input) 
+             (catch Exception e 
+               (println "Could not evaluate '" input "'.")))
+        (recur (next lines))
+        )))
+  (println "Narodnik shutting down...")
+  (System/exit 0)
+  )
 
-  (println "NARODNIK SERVER!")
-)
 
