@@ -3,8 +3,8 @@
    [aleph.udp]
    [gloss core io]
    [lamina core api]
-   [narodnik-server data]
-))
+   [narodnik-server data]))
+
 
 (defn handler-thread []
   "For updating status updates 
@@ -44,9 +44,10 @@
     (task-assign-thread)))
 
 
+
 (defn -main [& args]
   (println "Narodnik master starting...")
-  ;(init-db)
+  (init-db)
   (.start (Thread. task-assign-thread)) 
   (.start (Thread. handler-thread))
   (println "NARODNIK SERVER:")

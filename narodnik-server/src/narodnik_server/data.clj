@@ -1,9 +1,10 @@
 (ns narodnik-server.data
-  (:use [lamina core api]
-))
-(require '[clojure.java.jdbc :as sql])
+  (:use [lamina core api])
+  (:require [clojure.java.jdbc :as sql])
+)
 
-(def narodnik-schema [
+(def narodnik-schema 
+  [
 
                       [:machine
                        [:name :text]
@@ -13,6 +14,11 @@
                       [:machinegroup ; :groupmember [:groupid bigint] [:machineid bigint] 
                        [:name :text]
                        [:id :bigint]]
+
+                      [:chunk
+                       [:taskid :bigint]
+                       [:content :text]
+                       [:index :bigint]]
 
                       [:task
                        [:content :text] ; clojure/json serialized s-exp/obj/message
@@ -34,7 +40,6 @@
 ])
 
 (def create-table sql/create-table-ddl)
-
 (def exec-sql sql/db-do-commands)
 
 (let [db-host "localhost"
@@ -44,17 +49,23 @@
            :subprotocol "postgresql"
            :subname (str "//" db-host ":" db-port "/" db-name)
            :user "postgres"
-           :password "URA!URA!URA!"})) 
+           :password "Sage@123"})) 
 
 
-(defn create-tables []
-  (dorun (map (fn [table-schema] (exec-sql database
-                  (apply create-table table-schema)))
-         narodnik-schema)))
+(defn create-tables [] 
+  (println "Creating tables...")
+  (dorun (map (fn [table-design] 
+                (try (exec-sql database (apply create-table table-design))
+                     (catch Exception ex (println "Could not create table" 
+                                                  (str table-design)
+                                                  (str ex)))))
+              narodnik-schema)))
 
 (defn drop-all-tables [] 
-  (exec-sql database "drop schema public cascade"))
+  (println "Dropping all tables...")
+  (exec-sql database "drop schema public cascade")
+  (exec-sql database "create schema public"))
 
 (defn init-db []
-  (println "Setting up database")
+  (println "Setting up database...")
   (create-tables))

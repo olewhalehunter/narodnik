@@ -6,11 +6,11 @@
 (defn slave-handler-thread []
   "Slave I/O thread."
 
-  (let [slave-handler-interval 1000
-        inbound-port 10201
+  (let [inbound-port 10201
         outbound-port 10202
         host "localhost"
-        response "got it"]
+        response "got it"
+        slave-handler-interval 1000]
 
     (Thread/sleep slave-handler-interval)
 
@@ -24,6 +24,8 @@
           (close outbound-channel)
           (close inbound-channel))))
     (slave-handler-thread)))
+
+
 
 (defn -main [& args]
   (println "Starting Narodnik slave...")
