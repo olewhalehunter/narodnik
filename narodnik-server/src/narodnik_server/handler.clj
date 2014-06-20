@@ -10,7 +10,7 @@
   "For updating status updates 
    and CRUD operations from slaves"
 
-  (let [inbound-channel @(udp-object-socket {:port 10201})
+  (let [inbound-channel @(udp-object-socket {:port 10202})
         timeout 4000]
 
       (Thread/sleep timeout)
@@ -26,12 +26,12 @@
         inbound-port 10202
         outbound-port 10201
         host "localhost"
-        text-msg "(println \"NARODNIK IS GO\")"]
+        text-msg "(println \"NARODNIK!\")"]
 
      (Thread/sleep task-handler-interval)
 
-    (let [outbound-channel @(udp-object-socket)
-          inbound-channel @(udp-object-socket {:port inbound-port})]
+    (let [outbound-channel @(udp-object-socket)]
+          ;inbound-channel (udp-object-socket {:port inbound-port})] ; need local eval
       (try
         (enqueue outbound-channel 
                  {:message text-msg 
@@ -39,13 +39,14 @@
                   :port outbound-port})
         (finally
           (close outbound-channel)
-          (close inbound-channel))))
+        ;  (close inbound-channel)
+          )))
     (task-assign-thread)))
 
 
 (defn -main [& args]
-  (println "Narodnik starting up...")
-  (init-db)
+  (println "Narodnik master starting...")
+  ;(init-db)
   (.start (Thread. task-assign-thread)) 
   (.start (Thread. handler-thread))
   (println "NARODNIK SERVER:")

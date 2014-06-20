@@ -1,27 +1,34 @@
 (ns narodnik-client.core
-  (:use [aleph udp]
-   :require [org.httpkit.client :as http]))
+  (:use 
+   [aleph udp]
+   [lamina core api]))
 
-(defn handle-response [body]
-  (println "Recieved:" body)
-  (eval (read-string body))
-  )
+(defn slave-handler-thread []
+  "Slave I/O thread."
 
-(defn thread []
-  (let [{:keys [status headers body error] 
-         :as resp} 
-        @(http/get "http://localhost:3000")]
-    (if error
-      (println "Failed, exception: " error)
-      (handle-response body)))
-  (println "Listening...")
-  (Thread/sleep 1000)
-  (thread)
-)
+  (let [slave-handler-interval 1000
+        inbound-port 10201
+        outbound-port 10202
+        host "localhost"
+        response "got it"]
 
-(defn -main
-  [& args]
-  (.start (Thread. thread))
+    (Thread/sleep slave-handler-interval)
+
+    (let [outbound-channel @(udp-object-socket)
+          inbound-channel @(udp-object-socket {:port inbound-port})]
+      (try
+        (let [message (:message (wait-for-message inbound-channel))]
+          (println message))
+        (catch Exception e (println "Error listening on port" inbound-port))
+        (finally
+          (close outbound-channel)
+          (close inbound-channel))))
+    (slave-handler-thread)))
+
+(defn -main [& args]
+  (println "Starting Narodnik slave...")
+  (.start (Thread. slave-handler-thread))
   (println "NARODNIK CLIENT!"))
+
 
 

@@ -58,9 +58,3 @@
 (defn init-db []
   (println "Setting up database")
   (create-tables))
-
-(sql/db-do-commands database "drop *")
-               
-
-
- 
