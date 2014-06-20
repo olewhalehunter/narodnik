@@ -8,7 +8,9 @@
   )
 
 (defn thread []
-  (let [{:keys [status headers body error] :as resp} @(http/get "http://localhost:3000")]
+  (let [{:keys [status headers body error] 
+         :as resp} 
+        @(http/get "http://localhost:3000")]
     (if error
       (println "Failed, exception: " error)
       (handle-response body)))
