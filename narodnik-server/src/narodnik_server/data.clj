@@ -34,6 +34,7 @@
 ])
 
 (def create-table sql/create-table-ddl)
+
 (def exec-sql sql/db-do-commands)
 
 (let [db-host "localhost"
@@ -51,10 +52,15 @@
                   (apply create-table table-schema)))
          narodnik-schema)))
 
+(defn drop-all-tables [] 
+  (exec-sql database "drop schema public cascade"))
+
 (defn init-db []
   (println "Setting up database")
   (create-tables))
+
+(sql/db-do-commands database "drop *")
                
 
 
-  
+ 
