@@ -5,34 +5,32 @@
 
 (def narodnik-schema [
 
-  [:machine[
-  [:name :text]
-  [:id :bigint]
-  [:privatekey :text]]]
+                      [:machine
+                       [:name :text]
+                       [:id :bigint]
+                       [:privatekey :text]]
 
-  
-  [:group[ ; :groupmember [:groupid bigint] [:machineid bigint] 
-  [:name :text]
-  [:id :bigint]]]
+                      [:machinegroup ; :groupmember [:groupid bigint] [:machineid bigint] 
+                       [:name :text]
+                       [:id :bigint]]
 
-  [:task[
-  [:content :text] ; clojure/json serialized s-exp/obj/message
-  [:id :bigint]]]
+                      [:task
+                       [:content :text] ; clojure/json serialized s-exp/obj/message
+                       [:id :bigint]]
 
-  [:job[
-  [:slavetype :text] ; machine or group
-  [:slaveid :bigint] 
-  [:taskid :bigint]
-  [:status :text]    ; undone, asked, in progress, done
-  [:starttime :text]
-  [:endttime :text]]]
+                      [:job
+                       [:slavetype :text] ; machine or group
+                       [:slaveid :bigint] 
+                       [:taskid :bigint]
+                       [:status :text]    ; undone, asked, in progress, done
+                       [:starttime :text]
+                       [:endttime :text]]
 
-  [:dictionary[   ; for general purpose storage and status flags
-  [:key :text]
-  [:value :text]
-  [:counter :bigint]
-  [:machineid :bigint]]]
-
+                      [:dictionary ; for general purpose storage and status flags
+                       [:key :text]
+                       [:value :text]
+                       [:counter :bigint]
+                       [:machineid :bigint]] 
 ])
 
 (def create-table sql/create-table-ddl)
@@ -45,21 +43,17 @@
            :subprotocol "postgresql"
            :subname (str "//" db-host ":" db-port "/" db-name)
            :user "postgres"
-           :password "URA!URA!URA!"}))
+           :password "URA!URA!URA!"})) 
 
 
-(defn create-tables [db schema]
-  (let [
-        table-name first
-        table-rows (fn [x] 
-                     (doseq [row (second x)] (row)))
-        ]
-    (map (fn [x] 
-           (apply x create-table))
-         schema)))
+(defn create-tables []
+  (dorun (map (fn [table-schema] (exec-sql database
+                  (apply create-table table-schema)))
+         narodnik-schema)))
 
 (defn init-db []
-  (create-tables database narodnik-schema))
+  (println "Setting up database")
+  (create-tables))
                
 
 
