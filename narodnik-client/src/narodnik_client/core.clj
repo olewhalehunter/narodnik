@@ -11,13 +11,50 @@
 
     clojure package pullable from repository = wget from repl
      logic.clj -> loads files for resources
+     contains api from master repl to slave runtime
      ;dir resources
 
+  ;; sample logic.clj, master script
+
+     (let [machine (first-available-machine)]
+          (tell machine 
+                give-me-sad-news-from
+                []))
+                
+     
+  ;; fn run on slave
+
+    (defn run-browser-on-page-and-wait-for-json-results [page-set]
+      (Thread. (start. (start-browser pages)))
+      (doseq ;or list?
+       (while (notempty page-set
+                       (handle-http-requests (parse-json))))))
+                             
+      ;json back tells slave to tell master to update
+      
+    (defn sad? [] (incanter...))
+
+     (defn give-me-sad-news-from [page-set]
+        (activate-user-script gimme-sad-news) ; -> push userscript to browser folder
+        (run-browser-on-pages-and-wait-for-json-results)
+        (message-back-to-master 
+         filter sad? result-set))
+
+  ;; sample inbound message master->slave
+
+     {:message 
+      {:body {
+        :command "(give-me-sad-news-titles ['www.page-set...])"
+        :value 0}
+       :key "ab527c43dh324efa34f"
+       :machineid 3
+       }}
+
   ;; sample outbound message slave->master
-  
+
   {:message 
    {:body {
-    :command "(increment :num-widgets)"
+    :command "(increment :num-sad-news-titles)"
     :value 0}
    :key "ab527c43dh324efa34f"
    :machineid 3
@@ -26,8 +63,8 @@
 
 (defn handle-message [message client-channel]
   (println "Handling :" message)
-  (eval (read-string message))
-)
+  (eval (read-string message)))
+
 
 (defn slave-handler-thread []
   "Slave inbound thread."
@@ -53,7 +90,7 @@
                         inbound-port network-error))
              (finally
                (close client-channel))))
-      (slave-handler-thread)))))
+           (slave-handler-thread)))))
 
 
 (defn -main [& args]
