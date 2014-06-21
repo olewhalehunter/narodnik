@@ -39,7 +39,7 @@
                        [:key :text]
                        [:value :text]
                        [:counter :bigint]
-                       [:machineid :bigint]] 
+                       [:machineid :bigint]]
 ])
 
 (let [db-host "localhost"

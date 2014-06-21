@@ -5,8 +5,7 @@
    [lamina core api]
    [narodnik-server data]))
 
-
-(defn handler-thread []
+(defn handler-thread [instance]
   "For updating status updates 
    and CRUD operations from slaves"
 
@@ -17,16 +16,14 @@
       (eval (read-string (:message (wait-for-message inbound-channel 12000))))
 
       (close inbound-channel))
-  (handler-thread))
+  (handler-thread instance))
 
-(defn task-assign-thread []
+(defn task-assign-thread [instance]
   "testing handler thread"
 
   (let [task-handler-interval 1000
-        inbound-port 10202
-        outbound-port 10201
-        host "localhost"
-        text-msg "(println \"NARODNIK!\")"]
+        inbound-port (:inbound-port instance)
+        outbound-port (:outbound-port instance)]
 
      (Thread/sleep task-handler-interval)
 
@@ -34,34 +31,37 @@
           ;inbound-channel (udp-object-socket {:port inbound-port})] ; need local eval
       (try
         (enqueue outbound-channel 
-                 {:message text-msg 
-                  :host host 
+                 {:message "(println \"testing\")"
+                  :host "localhost"
                   :port outbound-port})
         (finally
           (close outbound-channel)
         ;  (close inbound-channel)
           )))
-    (task-assign-thread)))
-
-
+    (task-assign-thread instance)))
 
 (defn -main [& args]
   (println "Narodnik master starting...")
   (init-db)
-  (.start (Thread. task-assign-thread)) 
-  (.start (Thread. handler-thread))
-  (println "NARODNIK SERVER:")
-  (loop [lines (repeatedly read-line)]
-    (let [input (first lines)]
-      (when (not= "exit" input)
-        (try 
-          (load-string input) 
-             (catch Exception e 
-               (println "Could not evaluate '" input "'.")))
-        (recur (next lines))
-        )))
-  (println "Narodnik shutting down...")
-  (System/exit 0)
-  )
+  (let [master-instance {
+                         :privatekey "key" 
+                         :outbound-port 10201
+                         :inbound-port 10202}]
+    (.start (Thread. 
+             (task-assign-thread  master-instance))) 
+    (.start (Thread. 
+             (handler-thread master-instance)))
+    (println "NARODNIK SERVER:")
+    (loop [lines (repeatedly read-line)]
+      (let [input (first lines)]
+        (when (not= "exit" input)
+          (try 
+            (load-string input) 
+            (catch Exception e 
+              (println "Could not evaluate '" input "'.")))
+          (recur (next lines))
+          )))
+    (println "Narodnik shutting down...")
+    (System/exit 0)))
 
 

@@ -61,17 +61,17 @@
    }}
 )
 
-(defn handle-message [message client-channel]
+(defn handle-message [message client-channel instance]
   (println "Handling :" message)
-  (eval (read-string message)))
+  (eval (read-string message))
+
+)
 
 
-(defn slave-handler-thread []
+(defn slave-handler-thread [instance]
   "Slave inbound thread."
 
-  (let [inbound-port 10201
-        host "localhost"
-        response "got it"
+  (let [inbound-port (:inbound-port instance)
         slave-handler-interval 1000]
 
     (Thread/sleep slave-handler-interval)
@@ -80,7 +80,7 @@
       (try (let [message 
                  (:message (wait-for-message client-channel))]
              (try 
-               (handle-message message client-channel)
+               (handle-message message client-channel instance)
                (catch 
                    Exception bad-message 
                  (println "Bad message: " bad-message))
@@ -90,13 +90,21 @@
                         inbound-port network-error))
              (finally
                (close client-channel))))
-           (slave-handler-thread)))))
+           (slave-handler-thread instance)))))
 
 
 (defn -main [& args]
-  (println "Starting Narodnik slave...")
-  (.start (Thread. slave-handler-thread))
-  (println "NARODNIK CLIENT!"))
+  (let
+      [slave-instance {:publickey "password"
+                       :privatekey "key" 
+                       :master-host {:host "localhost"
+                                     :port 10202}
+                       :inbound-port 10201}]
+
+    (println "Starting Narodnik slave...")
+    (.start (Thread. (slave-handler-thread 
+                      slave-instance)))
+    (println "NARODNIK CLIENT!")))
 
 
 
