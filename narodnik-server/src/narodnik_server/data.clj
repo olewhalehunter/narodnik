@@ -1,7 +1,6 @@
 (ns narodnik-server.data
   (:use [lamina core api])
-  (:require [clojure.java.jdbc :as sql])
-)
+  (:require [clojure.java.jdbc :as sql]))
 
 (def narodnik-schema 
   [
@@ -11,9 +10,13 @@
                        [:id :bigint]
                        [:privatekey :text]]
 
-                      [:machinegroup ; :groupmember [:groupid bigint] [:machineid bigint] 
+                      [:machinegroup 
                        [:name :text]
                        [:id :bigint]]
+
+                      [:groupmember 
+                       [:groupid bigint]
+                       [:machineid bigint]]
 
                       [:chunk
                        [:taskid :bigint]
@@ -23,12 +26,12 @@
                       [:task
                        [:content :text] ; clojure/json serialized s-exp/obj/message
                        [:id :bigint]]
-
+                      
                       [:job
-                       [:slavetype :text] ; machine or group
+                       [:slavetype :text] ; machine/group
                        [:slaveid :bigint] 
                        [:taskid :bigint]
-                       [:status :text]    ; undone, asked, in progress, done
+                       [:status :text]    ; undone,asked,in progress,done
                        [:starttime :text]
                        [:endttime :text]]
 
@@ -39,9 +42,6 @@
                        [:machineid :bigint]] 
 ])
 
-(def create-table sql/create-table-ddl)
-(def exec-sql sql/db-do-commands)
-
 (let [db-host "localhost"
         db-port 5432
         db-name "narodnik"]
@@ -49,8 +49,13 @@
            :subprotocol "postgresql"
            :subname (str "//" db-host ":" db-port "/" db-name)
            :user "postgres"
-           :password "Sage@123"})) 
+           :password "URA!URA!URA!"}))
 
+
+
+(def create-table sql/create-table-ddl)
+
+(def exec-sql sql/db-do-commands)
 
 (defn create-tables [] 
   (println "Creating tables...")
