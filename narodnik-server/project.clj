@@ -5,7 +5,9 @@
                  [org.clojure/java.jdbc "0.3.3"]
                  [compojure "1.1.6"]
                  [aleph "0.3.2"]
-                 [postgresql "9.1-901.jdbc4"]]
+                 [postgresql "9.1-901.jdbc4"]
+                 [com.novemberain/validateur "2.1.0"]]
+
   :main narodnik-server.handler
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]

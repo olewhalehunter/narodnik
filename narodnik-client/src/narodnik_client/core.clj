@@ -54,9 +54,10 @@
 
   {:message 
    {:body {
-    :command "(increment :num-sad-news-titles)"
+    :command "(increment :num-widgets)"
     :value 0}
-   :key "ab527c43dh324efa34f"
+   :privatekey "narodnikkey"
+   :publickey "password123"
    :machineid 3
    }}
 )
