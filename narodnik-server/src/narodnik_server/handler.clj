@@ -68,21 +68,25 @@ that :machineid are validated against the :publickey
   "For updating status updates 
    and CRUD operations from slaves."
 
-  (let [inbound-channel @(udp-object-socket {:port 10202})
-        timeout 500
-        handler-interval 3000] ; miliseconds
+  (try (let [inbound-channel @(try (udp-object-socket 
+                                   {:port (:inbound-port instance)})
+                                   (catch org.jboss.netty.channel.ChannelException channel-in-use-exception)
+                                   (catch java.net.BindException port-in-use-exception))
+          timeout 500
+          handler-interval 3000] ; miliseconds
 
       (Thread/sleep handler-interval)
       
       (try
-        (.start (Thread. 
-                 (handle-inbound-message 
-                  (:message (wait-for-message inbound-channel timeout))
-                  instance)
-                 ))
-        (catch Exception e (println "Waiting for inbound messages..."))
+        (let [message (:message (wait-for-message inbound-channel timeout))]
+          (.start (Thread. 
+                   (try
+                     (handle-inbound-message message instance)
+                    ))))
+        (catch Exception e 
+          (println "Waiting for inbound messages..."))
         (finally (close inbound-channel)))
-  (handler-thread instance)))
+      (handler-thread instance))))
 
 (defn task-assign-thread [instance]
   "Master-Slave instructions outbound."
