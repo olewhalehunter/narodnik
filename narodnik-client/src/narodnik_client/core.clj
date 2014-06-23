@@ -64,19 +64,27 @@
 
 (defn init-follow-master-thread [client-channel instance]
   (println "Contacting master...")
-  (let [invite-request {:message
-                        {:message {
+  (let [invite-request {:message {
+                          :name (:machineid instance)
                           :privatekey (:privatekey instance)
-                          :publickey (:publickey instance)}}
+                          :publickey (:publickey instance)}
                         :host (:host (:master-host instance))
-                        :port (:port (:master-host instance))}]
+                        :port (:port (:master-host instance))}
+        number-request-attempts 10
+        request-timeout 10000]
     
     (enqueue client-channel invite-request )
-
-    (let [master-reply 
-          (wait-for-message client-channel)]
-      (println "Got reply from master :" (str (master-reply))))))
-  
+    (dotimes [n number-request-attempts]
+      (println "Attempting to contact master...")
+      (try
+        (let [master-reply 
+              (wait-for-message 
+               client-channel request-timeout)]
+          (println "Got reply from master :" (str (master-reply))))
+        (catch Exception timeout-exception
+          (println "Still waiting for reply...")))))
+ (close client-channel)
+ (println "Could not contact master."))
 
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)
@@ -123,8 +131,8 @@
     ;^ after join/authorize from master
     (let [client-channel @(udp-object-socket 
                            {:port (:inbound-port slave-instance)})]
-      (init-follow-master-thread client-channel slave-instance))
-    (println "NARODNIK CLIENT!")))
+      (init-follow-master-thread client-channel slave-instance)))
+  (System/exit 0))
 
 
 

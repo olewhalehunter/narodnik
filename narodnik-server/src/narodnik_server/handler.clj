@@ -14,20 +14,21 @@ master stores credentials and further requests from
 that :machineid are validated against the :publickey
 )
 
-(defn authenticated? [provided-id provided-publickey]
+(defn authenticated? [provided-name provided-publickey]
   (try 
     (let [claimed-machine 
-          (db-select :machine :machineid provided-id)]
+          (db-select :machine :name provided-name)]
       (= (:publickey claimed-machine) 
          provided-publickey))
     (catch Exception e false)))
 
-(defn handle-authorized-message [machineid body]
-  (println "Handling authorized message " (str body)))
+(defn handle-authorized-message [name body]
+  (println "Handling authorized message " (str body) 
+           " from machine '" name "'" ))
 
-(defn handle-invite-message [machineid publickey]
+(defn handle-invite-message [name publickey]
   (println "Handling invite message..."))
-2
+
 (defn handle-bad-message [message instance] ()
   (println "Recieved bad message :" (str message)))
 
@@ -39,41 +40,49 @@ that :machineid are validated against the :publickey
              :value 0}
       :privatekey "narodnikkey"
       :publickey "password123"
-      :machineid "friendcomputer"
+      :name "friendcomputer"
       }})
    (if (= (:privatekey message) 
-            (:privatekey instance))
+          (:privatekey instance))
      (let [authorized-msg (validation-set
                            (presence-of :body)
-                           (presence-of :machineid))
+                           (presence-of :name))
            message-keycount-equals?
            (fn [other] (= (count (keys message)) other))
            authorized-msg-keycount 4
-           invite-msg-keycount 2]
+           invite-msg-keycount 3]
 
-           (if (and (message-keycount-equals? authorized-msg-keycount)
-                    (valid? authorized-msg message)
-                    (authenticated? (:machineid message) 
-                                    (:publickey message)))
-             (handle-authorized-message)
-             (if (message-keycount-equals? invite-msg-keycount)
-               (handle-invite-message (:machineid message)
-                                      (:publickey message))))))
-   (handle-bad-message message instance))
+       (if (and (message-keycount-equals? authorized-msg-keycount)
+                (valid? authorized-msg message)
+                (authenticated? (:name message) 
+                                (:publickey message)))
+         (handle-authorized-message)
+         (if (message-keycount-equals? invite-msg-keycount)
+           (handle-invite-message (:name message)
+                                  (:publickey message))
+           (handle-bad-message message instance))))
+     (handle-bad-message message instance)))
+
 
 (defn handler-thread [instance]
   "For updating status updates 
    and CRUD operations from slaves."
+
   (let [inbound-channel @(udp-object-socket {:port 10202})
-        timeout 1000000000
-        handler-interval 1000] ; miliseconds
+        timeout 500
+        handler-interval 3000] ; miliseconds
 
       (Thread/sleep handler-interval)
-      (handle-inbound-message 
-       (:message (wait-for-message inbound-channel timeout))
-       instance)
-      (close inbound-channel))
-  (handler-thread instance))
+      
+      (try
+        (.start (Thread. 
+                 (handle-inbound-message 
+                  (:message (wait-for-message inbound-channel timeout))
+                  instance)
+                 ))
+        (catch Exception e (println "Waiting for inbound messages..."))
+        (finally (close inbound-channel)))
+  (handler-thread instance)))
 
 (defn task-assign-thread [instance]
   "Master-Slave instructions outbound."
@@ -92,9 +101,10 @@ that :machineid are validated against the :publickey
                   :host "localhost"
                   :port outbound-port})
         (catch Exception e 
-          (System/exit 0))
+          (println "Error sending outbound messages on port " (str outbound-port)))
         (finally
           (close outbound-channel)
+          (System/exit 0)
         ;  (close inbound-channel)
           )))
     (task-assign-thread instance)))
