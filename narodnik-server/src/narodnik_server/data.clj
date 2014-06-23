@@ -8,26 +8,27 @@
                       [:machine
                        [:name :text]
                        [:id :bigint]
-                       [:privatekey :text]]
+                       [:privatekey :text]
+                       [:publickey :text]]
 
                       [:machinegroup 
                        [:name :text]
                        [:id :bigint]]
 
                       [:groupmember 
-                       [:groupid bigint]
-                       [:machineid bigint]]
+                       [:groupid :bigint]
+                       [:machineid :bigint]]
 
                       [:chunk
                        [:taskid :bigint]
                        [:content :text]
                        [:index :bigint]]
 
-                      [:task
+                      [:ntask
                        [:content :text] ; clojure/json serialized s-exp/obj/message
                        [:id :bigint]]
                       
-                      [:job
+                      [:njob
                        [:slavetype :text] ; machine/group
                        [:slaveid :bigint] 
                        [:taskid :bigint]
@@ -35,12 +36,14 @@
                        [:starttime :text]
                        [:endttime :text]]
 
-                      [:dictionary ; for general purpose storage and status flags
+                      [:ndictionary ; for general purpose storage and status flags
                        [:key :text]
                        [:value :text]
                        [:counter :bigint]
                        [:machineid :bigint]]
 ])
+
+
 
 (let [db-host "localhost"
         db-port 5432
@@ -49,27 +52,40 @@
            :subprotocol "postgresql"
            :subname (str "//" db-host ":" db-port "/" db-name)
            :user "postgres"
-           :password "URA!URA!URA!"}))
+           :password "Sage@123"}))
 
 
 
 (def create-table sql/create-table-ddl)
 
-(def exec-sql sql/db-do-commands)
+(def exec-sql! sql/db-do-commands)
+
+(def query-db sql/query) 
+
+(def insert-db! sql/insert!)
 
 (defn create-tables [] 
   (println "Creating tables...")
   (dorun (map (fn [table-design] 
-                (try (exec-sql database (apply create-table table-design))
+                (try (exec-sql! database (apply create-table table-design))
                      (catch Exception ex (println "Could not create table" 
                                                   (str table-design)
                                                   (str ex)))))
               narodnik-schema)))
 
+(defn db-select [table key value]
+  (query-db database 
+            (str "select * from " (name table)
+                 " where " (name key) "=" (str value))))
+
+(defn db-insert! [table object]
+  (insert-db! database table object))
+
+
 (defn drop-all-tables [] 
   (println "Dropping all tables...")
-  (exec-sql database "drop schema public cascade")
-  (exec-sql database "create schema public"))
+  (exec-sql! database "drop schema public cascade")
+  (exec-sql! database "create schema public"))
 
 (defn init-db []
   (println "Setting up database...")

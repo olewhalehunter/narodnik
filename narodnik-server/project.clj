@@ -1,4 +1,4 @@
-(defproject narodnik-server "0.1.0-SNAPSHOT"
+(defproject narodnik-server "0.1.2"
   :description "Distributed user agent network server."
   :url "http://github.com/olewhalehunter/narodnik"
   :dependencies [[org.clojure/clojure "1.5.1"]
@@ -8,7 +8,4 @@
                  [postgresql "9.1-901.jdbc4"]
                  [com.novemberain/validateur "2.1.0"]]
 
-  :main narodnik-server.handler
-  :profiles
-  {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                        ]}})
+  :main narodnik-server.handler)

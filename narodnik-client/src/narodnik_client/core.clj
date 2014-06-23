@@ -57,15 +57,30 @@
     :command "(increment :num-widgets)"
     :value 0}
    :privatekey "narodnikkey"
-   :publickey "password123"
+   :publickey "Ha79000"
    :machineid 3
    }}
 )
 
+(defn init-follow-master-thread [client-channel instance]
+  (println "Contacting master...")
+  (let [invite-request {:message
+                        {:message {
+                          :privatekey (:privatekey instance)
+                          :publickey (:publickey instance)}}
+                        :host (:host (:master-host instance))
+                        :port (:port (:master-host instance))}]
+    
+    (enqueue client-channel invite-request )
+
+    (let [master-reply 
+          (wait-for-message client-channel)]
+      (println "Got reply from master :" (str (master-reply))))))
+  
+
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)
   (eval (read-string message))
-
 )
 
 
@@ -77,7 +92,7 @@
 
     (Thread/sleep slave-handler-interval)
 
-    (let [client-channel @(udp-object-socket {:port inbound-port})]
+    (let [client-channel @(udp-object-socket {:port inbound-port})] ; rip-out
       (try (let [message 
                  (:message (wait-for-message client-channel))]
              (try 
@@ -88,23 +103,27 @@
              (catch 
                  Exception network-error
                (println "Error reading from port" 
-                        inbound-port network-error))
+                        (inbound-port network-error)))
              (finally
-               (close client-channel))))
-           (slave-handler-thread instance)))))
+               (close client-channel))))))
+    (slave-handler-thread instance)))
 
 
-(defn -main [& args]
+(defn -main [& args] ; args -> slave-instance
   (let
-      [slave-instance {:publickey "password"
-                       :privatekey "key" 
+      [slave-instance {:machineid "daisy"
+                       :publickey "Ha79000"
+                       :privatekey "narodnikkey" 
                        :master-host {:host "localhost"
                                      :port 10202}
                        :inbound-port 10201}]
 
     (println "Starting Narodnik slave...")
-    (.start (Thread. (slave-handler-thread 
-                      slave-instance)))
+    ;(.start (Thread. (slave-handler-thread slave-instance)))
+    ;^ after join/authorize from master
+    (let [client-channel @(udp-object-socket 
+                           {:port (:inbound-port slave-instance)})]
+      (init-follow-master-thread client-channel slave-instance))
     (println "NARODNIK CLIENT!")))
 
 

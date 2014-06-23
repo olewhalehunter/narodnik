@@ -14,17 +14,22 @@ master stores credentials and further requests from
 that :machineid are validated against the :publickey
 )
 
-(defn authenticated? [machineid publickey]
- true)
+(defn authenticated? [provided-id provided-publickey]
+  (try 
+    (let [claimed-machine 
+          (db-select :machine :machineid provided-id)]
+      (= (:publickey claimed-machine) 
+         provided-publickey))
+    (catch Exception e false)))
 
 (defn handle-authorized-message [machineid body]
-  (println "Handling authorized message " body))
+  (println "Handling authorized message " (str body)))
 
 (defn handle-invite-message [machineid publickey]
   (println "Handling invite message..."))
-
+2
 (defn handle-bad-message [message instance] ()
-  (println ("Recieved bad message :" message)))
+  (println "Recieved bad message :" (str message)))
 
 (defn handle-inbound-message [message instance] ()
   ( comment "message structure"
@@ -42,7 +47,7 @@ that :machineid are validated against the :publickey
                            (presence-of :body)
                            (presence-of :machineid))
            message-keycount-equals?
-           (fn [other] (= (count (keys (message))) count))
+           (fn [other] (= (count (keys message)) other))
            authorized-msg-keycount 4
            invite-msg-keycount 2]
 
@@ -54,18 +59,19 @@ that :machineid are validated against the :publickey
              (if (message-keycount-equals? invite-msg-keycount)
                (handle-invite-message (:machineid message)
                                       (:publickey message))))))
-   (handle-bad-message))
+   (handle-bad-message message instance))
 
 (defn handler-thread [instance]
   "For updating status updates 
    and CRUD operations from slaves."
-
   (let [inbound-channel @(udp-object-socket {:port 10202})
-        timeout 4000]
+        timeout 1000000000
+        handler-interval 1000] ; miliseconds
 
-      (Thread/sleep timeout)
-      (handle-inbound-message (:message 
-                       (wait-for-message inbound-channel timeout)))
+      (Thread/sleep handler-interval)
+      (handle-inbound-message 
+       (:message (wait-for-message inbound-channel timeout))
+       instance)
       (close inbound-channel))
   (handler-thread instance))
 
@@ -85,6 +91,8 @@ that :machineid are validated against the :publickey
                  {:message "(println \"testing\")"
                   :host "localhost"
                   :port outbound-port})
+        (catch Exception e 
+          (System/exit 0))
         (finally
           (close outbound-channel)
         ;  (close inbound-channel)
@@ -98,8 +106,9 @@ that :machineid are validated against the :publickey
                          :privatekey "narodnikkey" 
                          :outbound-port 10201
                          :inbound-port 10202}]
-    (.start (Thread. 
-             (task-assign-thread  master-instance))) 
+    ;; (.start (Thread. 
+    ;;          (task-assign-thread master-instance)))
+    
     (.start (Thread. 
              (handler-thread master-instance)))
     (println "NARODNIK SERVER:")
