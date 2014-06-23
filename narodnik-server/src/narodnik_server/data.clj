@@ -82,6 +82,7 @@
   (insert-db! database table object))
 
 
+
 (defn drop-all-tables [] 
   (println "Dropping all tables...")
   (exec-sql! database "drop schema public cascade")

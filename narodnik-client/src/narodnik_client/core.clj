@@ -73,9 +73,9 @@
         number-request-attempts 10
         request-timeout 10000]
     
-    (enqueue client-channel invite-request )
     (dotimes [n number-request-attempts]
       (println "Attempting to contact master...")
+      (enqueue client-channel invite-request)
       (try
         (let [master-reply 
               (wait-for-message 
@@ -88,33 +88,12 @@
 
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)
-  (eval (read-string message))
-)
+  (eval (read-string message)))
 
 
 (defn slave-handler-thread [instance]
   "Slave inbound thread."
-
-  (let [inbound-port (:inbound-port instance)
-        slave-handler-interval 1000]
-
-    (Thread/sleep slave-handler-interval)
-
-    (let [client-channel @(udp-object-socket {:port inbound-port})] ; rip-out
-      (try (let [message 
-                 (:message (wait-for-message client-channel))]
-             (try 
-               (handle-message message client-channel instance)
-               (catch 
-                   Exception bad-message 
-                 (println "Bad message: " bad-message))
-             (catch 
-                 Exception network-error
-               (println "Error reading from port" 
-                        (inbound-port network-error)))
-             (finally
-               (close client-channel))))))
-    (slave-handler-thread instance)))
+)
 
 
 (defn -main [& args] ; args -> slave-instance
@@ -123,7 +102,7 @@
                        :publickey "Ha79000"
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"
-                                     :port 10202}
+                                     :port 10666}
                        :inbound-port 10201}]
 
     (println "Starting Narodnik slave...")
@@ -136,3 +115,16 @@
 
 
 
+(comment "tests"
+         (let [outbound-channel @(udp-object-socket {:port 10999})
+               message {:message {:name "test"}}]
+
+           (enqueue message outbound-channel))
+
+         (let [inbound-channel @(udp-object-socket {:port 10999})
+               message {:message {:name "test"}}
+               timeout 5000] 
+           (try (wait-for-message inbound-channel timeout)
+                (catch Exception e (println "Error waiting for message"))
+                (finally (close inbound-channel))))
+)

@@ -68,25 +68,19 @@ that :machineid are validated against the :publickey
   "For updating status updates 
    and CRUD operations from slaves."
 
-  (try (let [inbound-channel @(try (udp-object-socket 
-                                   {:port (:inbound-port instance)})
-                                   (catch org.jboss.netty.channel.ChannelException channel-in-use-exception)
-                                   (catch java.net.BindException port-in-use-exception))
-          timeout 500
-          handler-interval 3000] ; miliseconds
-
-      (Thread/sleep handler-interval)
-      
+  (let [timeout 500
+        handler-interval 3000
+        inbound-channel @(udp-object-socket 
+                          {:port (:inbound-port instance)})] ; miliseconds
+    (while true
       (try
-        (let [message (:message (wait-for-message inbound-channel timeout))]
-          (.start (Thread. 
-                   (try
-                     (handle-inbound-message message instance)
-                    ))))
+        (let [message (:message (wait-for-message inbound-channel 3000))]
+          (handle-inbound-message message instance))
         (catch Exception e 
           (println "Waiting for inbound messages..."))
         (finally (close inbound-channel)))
-      (handler-thread instance))))
+        (Thread/sleep handler-interval)
+        (handler-thread instance))))
 
 (defn task-assign-thread [instance]
   "Master-Slave instructions outbound."
@@ -116,15 +110,14 @@ that :machineid are validated against the :publickey
 (defn -main [& args]
   (println "Narodnik master starting...")
   (init-db)
-  (let [master-instance {
-                         :privatekey "narodnikkey" 
+  (let [master-instance {:privatekey "narodnikkey" 
                          :outbound-port 10201
-                         :inbound-port 10202}]
+                         :inbound-port 10666}]
     ;; (.start (Thread. 
     ;;          (task-assign-thread master-instance)))
     
-    (.start (Thread. 
-             (handler-thread master-instance)))
+    (future 
+      (handler-thread master-instance))
     (println "NARODNIK SERVER:")
     (loop [lines (repeatedly read-line)]
       (let [input (first lines)]
