@@ -5,6 +5,7 @@
    [lamina core api]
    [validateur validation]
    [narodnik-server data]
+   [narodnik-server exchange]
 ))
 
 (comment "Slave Invitation process:"
@@ -28,7 +29,8 @@ that :machineid are validated against the :publickey
            " from machine '" (:name message) "'" ))
 
 (defn greet-slave [machine host]
-  (println (str machine))) ;; or just task?
+  (println "Greeting slave :" (str machine))
+  (greet-slave-job! machine))
 
 (defn handle-invite-message [message host]
   (println "Handling invite message from " (str host))
@@ -57,7 +59,7 @@ that :machineid are validated against the :publickey
   ( comment "message structure"
     {:message 
      {:body {
-             :command "(increment :num-widgets)"
+             :command "(increment! :num-widgets)"
              :value 0}
       :privatekey "narodnikkey"
       :publickey "password123"
@@ -133,6 +135,7 @@ that :machineid are validated against the :publickey
 
 (defn -main [& args]
   (println "Narodnik master starting...")
+  (drop-all-tables)
   (init-db)
   (let [master-instance {:privatekey "narodnikkey" 
                          :outbound-port 10201
@@ -154,5 +157,3 @@ that :machineid are validated against the :publickey
           )))
     (println "Narodnik shutting down...")
     (System/exit 0)))
-
-

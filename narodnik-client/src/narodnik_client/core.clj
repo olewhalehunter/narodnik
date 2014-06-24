@@ -71,7 +71,7 @@
                         :host (:host (:master-host instance))
                         :port (:port (:master-host instance))}
         number-request-attempts 10
-        request-timeout 10000]
+        request-timeout 900]
     
     (dotimes [n number-request-attempts]
       (println "Attempting to contact master...")
@@ -90,14 +90,13 @@
   (println "Handling :" message)
   (eval (read-string message)))
 
-
 (defn slave-handler-thread [instance]
   "Slave inbound thread.")
 
 
 (defn -main [& args] ; args -> slave-instance
   (let
-      [slave-instance {:machineid "turner"
+      [slave-instance {:machineid "sverige"
                        :publickey "Ha79000"
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"

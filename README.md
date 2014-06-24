@@ -18,29 +18,36 @@ See files in \dev-environ.
 
 narodnik-server:
 
-assign task slave
-schedule task
-load package
-crud api and sample workflow
+* assign task slave
+* load package
+* crud api and sample workflow
 
-todo security and networking/package
+future security and networking/package:
 
-* client-eval scoping/isolation -> API?, limited to package definitions
+* eval scoping/isolation -> API?, limited to package definitions
 * request per-ip throttle
 * buffer limit
-* tune packet traffic
 * multiple-master subscription
 * dynamic port allocation/reassignment
+l
+future other:
+* tune packet traffic
+* iterative state tracking on db, each insert with timetstamp
+* dependent state-changing fn track, store each stateful! sexp eval'd
+* ^ example of above is db inserts created from existing state data, (foreach widget insert...)
+* ...for cross-db state merging (for scaling master instances)
+
 
 narodnik-client:
 
 * handle-task
+* slave deploy/install folder structure
 * write-userscript templating fn (scriptish)
 * create sample workflow packages
 
 installer:
 
-    * linux install script
+* linux install script
 * windows msi
 
 install order:

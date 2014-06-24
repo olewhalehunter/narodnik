@@ -36,11 +36,11 @@
                       
                       [:job
                        [:slavetype :text] ; machine/group
-                       [:slaveid :bigint] 
+                       [:slaveid :text] 
                        [:taskid :bigint]
                        [:status :text]    ; undone,asked,in progress,done
                        [:starttime :text]
-                       [:endttime :text]]
+                       [:endtime :text]]
 
                       [:dictionary ; for general purpose storage and status flags
                        [:key :text]
@@ -87,7 +87,7 @@
 (defn db-insert! [table object]
   (insert-db! database table object))
 
-(defn db-generate-id [table]
+(defn db-generate-id [table] 
   (int (rand 100000000)))
 
 (defn drop-all-tables [] 
@@ -99,5 +99,11 @@
   (println "Setting up database...")
   (create-tables))
 
+
+(defn get-machine [name]
+  (db-select :machine :name (str "'" name "'")))
+
 (defn exists-machine? [name] 
   (not (empty? (db-select :machine :name (str "'" name "'")))))
+
+(defn datetime-now [] (str (new java.util.Date)))
