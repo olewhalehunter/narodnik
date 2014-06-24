@@ -92,13 +92,12 @@
 
 
 (defn slave-handler-thread [instance]
-  "Slave inbound thread."
-)
+  "Slave inbound thread.")
 
 
 (defn -main [& args] ; args -> slave-instance
   (let
-      [slave-instance {:machineid "daisy"
+      [slave-instance {:machineid "bisby"
                        :publickey "Ha79000"
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"
@@ -113,18 +112,3 @@
       (init-follow-master-thread client-channel slave-instance)))
   (System/exit 0))
 
-
-
-(comment "tests"
-         (let [outbound-channel @(udp-object-socket {:port 10999})
-               message {:message {:name "test"}}]
-
-           (enqueue message outbound-channel))
-
-         (let [inbound-channel @(udp-object-socket {:port 10999})
-               message {:message {:name "test"}}
-               timeout 5000] 
-           (try (wait-for-message inbound-channel timeout)
-                (catch Exception e (println "Error waiting for message"))
-                (finally (close inbound-channel))))
-)

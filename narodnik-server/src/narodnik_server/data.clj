@@ -7,9 +7,15 @@
 
                       [:machine
                        [:name :text]
-                       [:id :bigint]
+                       [:status :text] ; invite recieved, free, busy; as key in clj
                        [:privatekey :text]
-                       [:publickey :text]]
+                       [:publickey :text]
+                       [:hostid :bigint]]
+
+                      [:host
+                       [:address :text]
+                       [:port :int]
+                       [:id :bigint]]
 
                       [:machinegroup 
                        [:name :text]
@@ -24,11 +30,11 @@
                        [:content :text]
                        [:index :bigint]]
 
-                      [:ntask
+                      [:task
                        [:content :text] ; clojure/json serialized s-exp/obj/message
                        [:id :bigint]]
                       
-                      [:njob
+                      [:job
                        [:slavetype :text] ; machine/group
                        [:slaveid :bigint] 
                        [:taskid :bigint]
@@ -36,7 +42,7 @@
                        [:starttime :text]
                        [:endttime :text]]
 
-                      [:ndictionary ; for general purpose storage and status flags
+                      [:dictionary ; for general purpose storage and status flags
                        [:key :text]
                        [:value :text]
                        [:counter :bigint]
@@ -81,7 +87,8 @@
 (defn db-insert! [table object]
   (insert-db! database table object))
 
-
+(defn db-generate-id [table]
+  (int (rand 100000000)))
 
 (defn drop-all-tables [] 
   (println "Dropping all tables...")
@@ -91,3 +98,6 @@
 (defn init-db []
   (println "Setting up database...")
   (create-tables))
+
+(defn exists-machine? [name] 
+  (not (empty? (db-select :machine :name (str "'" name "'")))))

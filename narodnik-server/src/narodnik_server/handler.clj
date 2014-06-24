@@ -22,17 +22,38 @@ that :machineid are validated against the :publickey
          provided-publickey))
     (catch Exception e false)))
 
-(defn handle-authorized-message [name body]
-  (println "Handling authorized message " (str body) 
-           " from machine '" name "'" ))
+(defn handle-authorized-message [message host]
+  (println "Handling authorized message " (str (:body message)) 
+           " from machine '" (:name message) "'" ))
 
-(defn handle-invite-message [name publickey]
-  (println "Handling invite message..."))
+(defn greet-slave [machine host]
+  (println (str machine))
+)
+
+(defn handle-invite-message [message host]
+  (println "Handling invite message...")
+  (if (exists-machine? (:name message))
+    (println "Machine " (:name message) " is already registered.")
+    (let [host-id (db-generate-id :host)]
+      (println "Machine " (:name message) " doesn't exist")
+      (let [machine {
+                     :name (:name message)
+                     :publickey (:publickey message)
+                     :pcrivatekey (:privatekey message)
+                     :status "invited"
+                     :hostid host-id}
+            host {:address (:host message)
+                  :port (:port message)
+                  :id host-id 
+                  }]
+        (db-insert! :machine machine)
+        (db-insert! :host host)
+        (greet-slave machine host)))))
 
 (defn handle-bad-message [message instance] ()
   (println "Recieved bad message :" (str message)))
 
-(defn handle-inbound-message [message instance] ()
+(defn handle-inbound-message [message instance host] ()
   ( comment "message structure"
     {:message 
      {:body {
@@ -56,10 +77,9 @@ that :machineid are validated against the :publickey
                 (valid? authorized-msg message)
                 (authenticated? (:name message) 
                                 (:publickey message)))
-         (handle-authorized-message)
+         (handle-authorized-message message host)
          (if (message-keycount-equals? invite-msg-keycount)
-           (handle-invite-message (:name message)
-                                  (:publickey message))
+           (handle-invite-message message host)
            (handle-bad-message message instance))))
      (handle-bad-message message instance)))
 
@@ -74,8 +94,12 @@ that :machineid are validated against the :publickey
                           {:port (:inbound-port instance)})] ; miliseconds
     (while true
       (try
-        (let [message (:message (wait-for-message inbound-channel 3000))]
-          (handle-inbound-message message instance))
+        (let [datagram (wait-for-message inbound-channel 3000)]
+          (println "Recieved from host " (str (:host datagram)))
+          (future (handle-inbound-message 
+                   (:message datagram) 
+                   instance
+                   (:host datagram))))
         (catch Exception e 
           (println "Waiting for inbound messages..."))
         (finally (close inbound-channel)))

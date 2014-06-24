@@ -18,12 +18,12 @@ See files in \dev-environ.
 
 narodnik-server:
 
-* msg authentication
-* setup new slave
-* security, publickey
-* close all threads in end state wrapper
+assign task slave
+schedule task
+load package
+crud api and sample workflow
 
-todo security and networking: 
+todo security and networking/package
 
 * invite keys, (nonglobal :private keys per master->slave relationship)
 * client-eval scoping/isolation -> API?, limited to package definitions
@@ -35,8 +35,7 @@ todo security and networking:
 
 narodnik-client:
 
-* init handshake
-* handle-message
+* handle-task
 * write-userscript templating fn (scriptish)
 * create sample workflow packages
 
