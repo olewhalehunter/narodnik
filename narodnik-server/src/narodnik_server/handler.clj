@@ -1,10 +1,11 @@
-(ns narodnik-server.handler
+(ns narodnik-server.handler (:gen-class)
   (:use 
    [aleph.udp]
    [gloss core io]
    [lamina core api]
    [validateur validation]
-   [narodnik-server data]))
+   [narodnik-server data]
+))
 
 (comment "Slave Invitation process:"
 (personal?) private key sent via third party or sent with slave install
@@ -27,11 +28,10 @@ that :machineid are validated against the :publickey
            " from machine '" (:name message) "'" ))
 
 (defn greet-slave [machine host]
-  (println (str machine))
-)
+  (println (str machine))) ;; or just task?
 
 (defn handle-invite-message [message host]
-  (println "Handling invite message...")
+  (println "Handling invite message from " (str host))
   (if (exists-machine? (:name message))
     (println "Machine " (:name message) " is already registered.")
     (let [host-id (db-generate-id :host)]
@@ -39,11 +39,11 @@ that :machineid are validated against the :publickey
       (let [machine {
                      :name (:name message)
                      :publickey (:publickey message)
-                     :pcrivatekey (:privatekey message)
+                     :privatekey (:privatekey message)
                      :status "invited"
                      :hostid host-id}
-            host {:address (:host message)
-                  :port (:port message)
+            host {:address (:host host)
+                  :port (:port host)
                   :id host-id 
                   }]
         (db-insert! :machine machine)
@@ -83,7 +83,6 @@ that :machineid are validated against the :publickey
            (handle-bad-message message instance))))
      (handle-bad-message message instance)))
 
-
 (defn handler-thread [instance]
   "For updating status updates 
    and CRUD operations from slaves."
@@ -99,7 +98,8 @@ that :machineid are validated against the :publickey
           (future (handle-inbound-message 
                    (:message datagram) 
                    instance
-                   (:host datagram))))
+                   {:host (:host datagram)
+                    :port (:port datagram)})))
         (catch Exception e 
           (println "Waiting for inbound messages..."))
         (finally (close inbound-channel)))

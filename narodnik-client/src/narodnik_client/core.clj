@@ -1,4 +1,4 @@
-(ns narodnik-client.core
+(ns narodnik-client.core (:gen-class)
   (:use 
    [aleph udp]
    [lamina core api]))
@@ -97,7 +97,7 @@
 
 (defn -main [& args] ; args -> slave-instance
   (let
-      [slave-instance {:machineid "bisby"
+      [slave-instance {:machineid "turner"
                        :publickey "Ha79000"
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"

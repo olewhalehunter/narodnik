@@ -7,5 +7,5 @@
                  [aleph "0.3.2"]
                  [postgresql "9.1-901.jdbc4"]
                  [com.novemberain/validateur "2.1.0"]]
-
+  :profiles {:uberjar  {:aot :all}}
   :main narodnik-server.handler)

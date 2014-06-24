@@ -10,5 +10,6 @@
                  [org.clojure/clojurescript "0.0-2069"]
                  [aleph "0.3.2"]]
   :main narodnik-client.core
+  :profile {:uberjar {:aot narodnik-client.core}}
 )
 

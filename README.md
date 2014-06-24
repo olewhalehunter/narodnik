@@ -25,13 +25,12 @@ crud api and sample workflow
 
 todo security and networking/package
 
-* invite keys, (nonglobal :private keys per master->slave relationship)
 * client-eval scoping/isolation -> API?, limited to package definitions
 * request per-ip throttle
 * buffer limit
 * tune packet traffic
 * multiple-master subscription
-* port 
+* dynamic port allocation/reassignment
 
 narodnik-client:
 
