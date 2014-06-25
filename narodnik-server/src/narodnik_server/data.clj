@@ -77,10 +77,15 @@
                                                   (str ex)))))
               narodnik-schema)))
 
+(defn query-db [db query]
+  (println "Excecuting query : " query)
+  (sql/query db query))
+
 (defn db-select [table key value]
-  (query-db database 
-            (str "select * from " (name table)
-                 " where " (name key) "=" (str value))))
+  (let [query 
+               (str "select * from " (name table)
+                   " where " (name key) "=" (str value))]
+    (query-db database  query)))
 
 (defn db-insert! [table object]
   (insert-db! database table object))
@@ -88,8 +93,7 @@
 (defn db-update! [table condition value update-map ]
   (sql/update! database
     table update-map [(str (name condition) "=?") value] ))
-
-           
+          
 (defn db-generate-id [table] 
   (int (rand 100000000)))
 
@@ -106,7 +110,7 @@
   (first (db-select :job :status "'undone'")))
 
 (defn get-task-of-job [job]
-  (db-select :task :id (:taskid job)))
+  (first (db-select :task :id (:taskid job))))
 
 (defn get-machine [name]
   (db-select :machine :name (str "'" name "'")))
@@ -117,7 +121,10 @@
 (defn datetime-now [] (str (new java.util.Date)))
 
 (defn get-host-of-machine [machine]
-  (db-select :host :id (:hostid machine)))
+  (println "Looking up host of machine : " (str machine))
+  (first (db-select :host :id (:hostid machine)))
+)
 
 (defn get-slave-of-job [job]
-  (db-select :machine :name (:slaveid job)))
+  (println "Looking up slave for job.")
+  (first (db-select :machine :name (str "'" (:slaveid job) "'"))))

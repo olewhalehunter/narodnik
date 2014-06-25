@@ -113,10 +113,24 @@ that :machineid are validated against the :publickey
 
 (defn process-job! [job instance]
   (println "Processing job : " (str job) )
-  (attempt "processing job"
     (db-update! :job :taskid (:taskid job) 
-                {:status "assigned"}))
-  (println "Job processed."))
+                {:status "assigned"})
+    (let
+         [outbound-channel @(udp-object-socket)
+          task (get-task-of-job job)
+          slave (get-slave-of-job job)]
+         (println "Found slave : " slave " for job.")
+         (let [slave-host (get-host-of-machine slave)]
+           (println "Sending task as message :" (str task) 
+                    "to host" (str slave-host))
+           (let [message {
+                          :message (:content task)
+                          :host (:address slave-host)
+                          :port (:port slave-host)}]
+             (print "Sending message : " (str message))
+             (attempt "send message channel " 
+                      (enqueue outbound-channel message))))
+  (println "Job processed.")))
 
 (defn task-assign-thread [instance]
   "Assigning tasks from jobs as sent messages to slaves."

@@ -62,6 +62,12 @@
    }}
 )
 
+(defmacro attempt [desc exp]
+  `(try ~exp
+       (catch Exception error# (println 
+                           "Error attempting " ~desc
+                           " : " error#))))
+
 (defn init-follow-master-thread [client-channel instance]
   (println "Contacting master...")
   (let [invite-request {:message {
@@ -70,21 +76,26 @@
                           :publickey (:publickey instance)}
                         :host (:host (:master-host instance))
                         :port (:port (:master-host instance))}
-        number-request-attempts 10
-        request-timeout 900]
+        number-request-attempts 3
+        request-timeout 5000]
     
-    (dotimes [n number-request-attempts]
-      (println "Attempting to contact master...")
-      (enqueue client-channel invite-request)
-      (try
-        (let [master-reply 
-              (wait-for-message 
-               client-channel request-timeout)]
-          (println "Got reply from master :" (str (master-reply))))
-        (catch Exception timeout-exception
-          (println "Still waiting for reply...")))))
- (close client-channel)
- (println "Could not contact master."))
+    (attempt "contact master" 
+             (dotimes [n number-request-attempts]   
+               (let [inbound-channel client-channel] ; miliseconds
+                 (while true
+                   (println "Attempting to contact master...")
+                   (enqueue client-channel invite-request)
+                   (println "Message sent.")
+                   (try
+                     (println "Waiting for message back...")
+                     (let [datagram (wait-for-message client-channel 
+                                                      request-timeout)]
+                       (println "Recieved from host " (str (:host datagram))
+                                " " (str datagram)))
+                     (catch Exception e 
+                       (println "Waiting for inbound messages..." e))
+                     (finally (close inbound-channel)))
+                   (Thread/sleep request-timeout)))))))
 
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)
@@ -95,12 +106,12 @@
 
 (defn -main [& args] ; args -> slave-instance
   (let
-      [slave-instance {:machineid "narodnikman"
+      [slave-instance {:machineid "nyman"
                        :publickey "Ha79000"
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"
                                      :port 10666}
-                       :inbound-port 10201}]
+                       :inbound-port 6613}]
 
     (println "Starting Narodnik slave...")
     ;(.start (Thread. (slave-handler-thread slave-instance)))
