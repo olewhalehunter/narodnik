@@ -1,6 +1,8 @@
 (ns narodnik-server.data
-  (:use [lamina core api])
-  (:require [clojure.java.jdbc :as sql]))
+  (:use [lamina core api]
+        [narodnik-server library])
+  (:require 
+   [clojure.java.jdbc :as sql]))
 
 (def narodnik-schema 
   [
@@ -38,7 +40,7 @@
                        [:slavetype :text] ; machine/group
                        [:slaveid :text] 
                        [:taskid :bigint]
-                       [:status :text]    ; undone,asked,in progress,done
+                       [:status :text]    ; undone,assigned,in progress,done
                        [:starttime :text]
                        [:endtime :text]]
 
@@ -49,8 +51,6 @@
                        [:machineid :bigint]]
 ])
 
-
-
 (let [db-host "localhost"
         db-port 5432
         db-name "narodnik"]
@@ -59,8 +59,6 @@
            :subname (str "//" db-host ":" db-port "/" db-name)
            :user "postgres"
            :password "Sage@123"}))
-
-
 
 (def create-table sql/create-table-ddl)
 
@@ -87,6 +85,11 @@
 (defn db-insert! [table object]
   (insert-db! database table object))
 
+(defn db-update! [table condition value update-map ]
+  (sql/update! database
+    table update-map [(str (name condition) "=?") value] ))
+
+           
 (defn db-generate-id [table] 
   (int (rand 100000000)))
 
@@ -99,6 +102,11 @@
   (println "Setting up database...")
   (create-tables))
 
+(defn most-important-undone-job [] "for assignment thread (pipeline)"
+  (first (db-select :job :status "'undone'")))
+
+(defn get-task-of-job [job]
+  (db-select :task :id (:taskid job)))
 
 (defn get-machine [name]
   (db-select :machine :name (str "'" name "'")))
@@ -107,3 +115,9 @@
   (not (empty? (db-select :machine :name (str "'" name "'")))))
 
 (defn datetime-now [] (str (new java.util.Date)))
+
+(defn get-host-of-machine [machine]
+  (db-select :host :id (:hostid machine)))
+
+(defn get-slave-of-job [job]
+  (db-select :machine :name (:slaveid job)))

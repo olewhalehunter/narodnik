@@ -4,9 +4,12 @@
    [gloss core io]
    [lamina core api]
    [validateur validation]
+   [narodnik-server library]
    [narodnik-server data]
    [narodnik-server exchange]
 ))
+
+
 
 (comment "Slave Invitation process:"
 (personal?) private key sent via third party or sent with slave install
@@ -52,11 +55,11 @@ that :machineid are validated against the :publickey
         (db-insert! :host host)
         (greet-slave machine host)))))
 
-(defn handle-bad-message [message instance] ()
+(defn handle-bad-message [message instance] 
   (println "Recieved bad message :" (str message)))
 
-(defn handle-inbound-message [message instance host] ()
-  ( comment "message structure"
+(defn handle-inbound-message [message instance host] 
+  ( comment "Message Format"
     {:message 
      {:body {
              :command "(increment! :num-widgets)"
@@ -70,8 +73,8 @@ that :machineid are validated against the :publickey
      (let [authorized-msg (validation-set
                            (presence-of :body)
                            (presence-of :name))
-           message-keycount-equals?
-           (fn [other] (= (count (keys message)) other))
+           message-keycount-equals? (fn [other-message]
+                                      (= (count (keys message)) other-message))
            authorized-msg-keycount 4
            invite-msg-keycount 3]
 
@@ -103,35 +106,41 @@ that :machineid are validated against the :publickey
                    {:host (:host datagram)
                     :port (:port datagram)})))
         (catch Exception e 
-          (println "Waiting for inbound messages..."))
+          (comment println "Waiting for inbound messages..."))
         (finally (close inbound-channel)))
         (Thread/sleep handler-interval)
         (handler-thread instance))))
 
+(defn process-job! [job instance]
+  (println "Processing job : " (str job) )
+  (attempt "processing job"
+    (db-update! :job :taskid (:taskid job) 
+                {:status "assigned"}))
+  (println "Job processed."))
+
 (defn task-assign-thread [instance]
-  "Master-Slave instructions outbound."
-
-  (let [task-handler-interval 1000
-        inbound-port (:inbound-port instance)
-        outbound-port (:outbound-port instance)]
-
-     (Thread/sleep task-handler-interval)
-
-    (let [outbound-channel @(udp-object-socket)]
-          ;inbound-channel (udp-object-socket {:port inbound-port})] ; need local eval
-      (try
-        (enqueue outbound-channel 
-                 {:message "(println \"testing\")"
-                  :host "localhost"
-                  :port outbound-port})
-        (catch Exception e 
-          (println "Error sending outbound messages on port " (str outbound-port)))
-        (finally
-          (close outbound-channel)
-          (System/exit 0)
-        ;  (close inbound-channel)
-          )))
-    (task-assign-thread instance)))
+  "Assigning tasks from jobs as sent messages to slaves."
+  (while true
+    (Thread/sleep 3000)
+    (comment println "Taking job from queue...")
+    (let [outbound-port (:outbound-port instance)
+          jobs (db-select :job :status "'undone'")]
+      (if (not (empty? jobs))
+        (process-job! (first jobs) instance)
+        (comment println "No jobs to process."
+        (comment
+        (let 
+            [outbound-channel @(udp-object-socket)
+             task (get-task-of-job (first jobs))
+             slave (get-slave-of-job (first jobs))]
+          (println "Looking up host of slave : " (str slave))
+          (let [slave-host (get-host-of-machine slave)]
+            (println "Sending task as message :" (str task))
+            (enqueue outbound-channel 
+                     {:message (:message task)
+                      :host (:host slave-host)
+                      :port (:port slave-host) }))))))))
+  (task-assign-thread instance))
 
 (defn -main [& args]
   (println "Narodnik master starting...")
@@ -140,10 +149,9 @@ that :machineid are validated against the :publickey
   (let [master-instance {:privatekey "narodnikkey" 
                          :outbound-port 10201
                          :inbound-port 10666}]
-    ;; (.start (Thread. 
-    ;;          (task-assign-thread master-instance)))
-    
-    (future 
+    (future
+      (task-assign-thread master-instance))
+    (future
       (handler-thread master-instance))
     (println "NARODNIK SERVER:")
     (loop [lines (repeatedly read-line)]

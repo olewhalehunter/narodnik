@@ -16,7 +16,7 @@
               :status "undone"
               :starttime (datetime-now)
               :endtime "NULL"
-              }]she
+              }]
          (db-insert! :task task)
          (db-insert! :job job)))
   (catch Exception e (println "Error greeting slave :" e))))

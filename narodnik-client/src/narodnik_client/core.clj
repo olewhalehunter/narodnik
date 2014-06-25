@@ -93,10 +93,9 @@
 (defn slave-handler-thread [instance]
   "Slave inbound thread.")
 
-
 (defn -main [& args] ; args -> slave-instance
   (let
-      [slave-instance {:machineid "sverige"
+      [slave-instance {:machineid "narodnikman"
                        :publickey "Ha79000"
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"
@@ -108,6 +107,5 @@
     ;^ after join/authorize from master
     (let [client-channel @(udp-object-socket 
                            {:port (:inbound-port slave-instance)})]
-      (init-follow-master-thread client-channel slave-instance)))
-  (System/exit 0))
+      (init-follow-master-thread client-channel slave-instance))))
 
