@@ -18,32 +18,34 @@ See files in \dev-environ.
 
 narodnik-server:
 
-* assign task slave
 * load package
+* ? allowed evals lookup for client callbacks in each package?
 * crud api and sample workflow
 
 future security and networking/package:
 
 * eval scoping/isolation -> API?, limited to package definitions
+* p2p communication and chaining with common state
+* dynamic port allocation/reassignment
 * request per-ip throttle
 * buffer limit
-* multiple-master subscription
-* dynamic port allocation/reassignment
-l
-future other:
 * tune packet traffic
+
+future other:
+
 * iterative state tracking on db, each insert with timetstamp
 * dependent state-changing fn track, store each stateful! sexp eval'd
 * ^ example of above is db inserts created from existing state data, (foreach widget insert...)
 * ...for cross-db state merging (for scaling master instances)
-
+* schema tinkering, batch query optimization
 
 narodnik-client:
 
-* handle-task
+* handle-task, task status tracking
 * slave deploy/install folder structure
-* write-userscript templating fn (scriptish)
+* write-userscript templating lib (scriptish)
 * create sample workflow packages
+* same lib and distributable as server, config as uberjar profile
 
 installer:
 

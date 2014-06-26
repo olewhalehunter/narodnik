@@ -68,6 +68,29 @@
                            "Error attempting " ~desc
                            " : " error#))))
 
+(defn handle-message [message client-channel instance]
+  (println "Handling :" message)
+  (load-string :message))
+
+(defn slave-handler-thread [client-channel instance]
+  "Slave inbound thread."
+  (let [handler-interval 5000]
+    (println "Slave handler thread...")
+    (while true
+      (Thread/sleep handler-interval)
+      (try
+        (println "Waiting for job...")
+        (let [datagram (wait-for-message client-channel 
+                                         handler-interval)]
+          (println "Recieved from host " (str (:host datagram))
+                   " " (str datagram))
+          (future 
+            (handle-message (handle-message (:message datagram)
+          (slave-handler-thread client-channel instance)))))
+        (catch Exception e 
+          (println "Reading inbound messages..."))
+        (finally (close client-channel))))))
+
 (defn init-follow-master-thread [client-channel instance]
   (println "Contacting master...")
   (let [invite-request {:message {
@@ -91,22 +114,16 @@
                      (let [datagram (wait-for-message client-channel 
                                                       request-timeout)]
                        (println "Recieved from host " (str (:host datagram))
-                                " " (str datagram)))
+                                " " (str datagram))
+                       (slave-handler-thread client-channel instance))
                      (catch Exception e 
-                       (println "Waiting for inbound messages..." e))
+                       (println "Reading inbound messages..." e))
                      (finally (close inbound-channel)))
                    (Thread/sleep request-timeout)))))))
 
-(defn handle-message [message client-channel instance]
-  (println "Handling :" message)
-  (eval (read-string message)))
-
-(defn slave-handler-thread [instance]
-  "Slave inbound thread.")
-
 (defn -main [& args] ; args -> slave-instance
   (let
-      [slave-instance {:machineid "nyman"
+      [slave-instance {:machineid "svordman"
                        :publickey "Ha79000"
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"
@@ -114,9 +131,19 @@
                        :inbound-port 6613}]
 
     (println "Starting Narodnik slave...")
-    ;(.start (Thread. (slave-handler-thread slave-instance)))
-    ;^ after join/authorize from master
+
     (let [client-channel @(udp-object-socket 
                            {:port (:inbound-port slave-instance)})]
-      (init-follow-master-thread client-channel slave-instance))))
+      (future (init-follow-master-thread client-channel slave-instance)))
+    (loop [lines (repeatedly read-line)]
+      (let [input (first lines)]
+        (when (not= "exit" input)
+          (try 
+            (load-string input) 
+            (catch Exception e 
+              (println "Could not evaluate '" input "'.")))
+          (recur (next lines))
+          )))
+    (println "Narodnik slave shutting down...")
+    (System/exit 0)))
 

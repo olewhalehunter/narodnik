@@ -9,8 +9,6 @@
    [narodnik-server exchange]
 ))
 
-
-
 (comment "Slave Invitation process:"
 (personal?) private key sent via third party or sent with slave install
 transport-layer string encrypted and authorized with private key

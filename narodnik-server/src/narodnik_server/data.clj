@@ -87,6 +87,11 @@
                    " where " (name key) "=" (str value))]
     (query-db database  query)))
 
+(defn db-select-all [table]
+  (query-db database (str "select * from " (name table))))
+
+(println (db-select-all :machine))
+
 (defn db-insert! [table object]
   (insert-db! database table object))
 
