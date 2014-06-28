@@ -90,8 +90,6 @@
 (defn db-select-all [table]
   (query-db database (str "select * from " (name table))))
 
-(println (db-select-all :machine))
-
 (defn db-insert! [table object]
   (insert-db! database table object))
 
@@ -127,8 +125,7 @@
 
 (defn get-host-of-machine [machine]
   (println "Looking up host of machine : " (str machine))
-  (first (db-select :host :id (:hostid machine)))
-)
+  (first (db-select :host :id (:hostid machine))))
 
 (defn get-slave-of-job [job]
   (println "Looking up slave for job.")

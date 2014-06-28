@@ -69,14 +69,12 @@
                            " : " error#))))
 
 (defn handle-message [message client-channel instance]
-  (println "Handling :" message)
-  (load-string :message))
+  (println "Handling :" message))
 
 (defn slave-handler-thread [client-channel instance]
   "Slave inbound thread."
   (let [handler-interval 5000]
     (println "Slave handler thread...")
-    (while true
       (Thread/sleep handler-interval)
       (try
         (println "Waiting for job...")
@@ -88,38 +86,52 @@
             (handle-message (handle-message (:message datagram)
           (slave-handler-thread client-channel instance)))))
         (catch Exception e 
-          (println "Reading inbound messages..."))
-        (finally (close client-channel))))))
+          (println "Reading inbound messages..." e))
+        (finally (close client-channel)))))
+
+(defn contact-master 
+
+  [client-channel instance
+   num-attempts request-timeout
+   invite-request]
+
+    (println "Attempting to contact master...")
+    (enqueue client-channel invite-request)
+    (println "Message sent.")
+    (try
+      (println "Waiting for greeting back from master...")
+      (let [datagram (wait-for-message client-channel 
+                                       request-timeout)]
+        (println "Recieved from host " (str (:host datagram))
+                 " " (str datagram))
+        (slave-handler-thread client-channel instance))
+      (catch Exception e 
+        (println "Request for greeting timed out..." e))
+      (finally (close client-channel)
+               (Thread/sleep request-timeout)
+               (if (> num-attempts 0) 
+                 (attempt "contacting master" (contact-master 
+                                            client-channel 
+                                            instance (- num-attempts 1)
+                                            request-timeout
+                                            invite-request))
+                 (println "Could not contact master.")))))
 
 (defn init-follow-master-thread [client-channel instance]
   (println "Contacting master...")
-  (let [invite-request {:message {
-                          :name (:machineid instance)
-                          :privatekey (:privatekey instance)
-                          :publickey (:publickey instance)}
+  (let [invite-request {
+                        :message {
+                                  :name (:machineid instance)
+                                  :privatekey (:privatekey instance)
+                                  :publickey (:publickey instance)}
                         :host (:host (:master-host instance))
                         :port (:port (:master-host instance))}
-        number-request-attempts 3
-        request-timeout 5000]
-    
-    (attempt "contact master" 
-             (dotimes [n number-request-attempts]   
-               (let [inbound-channel client-channel] ; miliseconds
-                 (while true
-                   (println "Attempting to contact master...")
-                   (enqueue client-channel invite-request)
-                   (println "Message sent.")
-                   (try
-                     (println "Waiting for message back...")
-                     (let [datagram (wait-for-message client-channel 
-                                                      request-timeout)]
-                       (println "Recieved from host " (str (:host datagram))
-                                " " (str datagram))
-                       (slave-handler-thread client-channel instance))
-                     (catch Exception e 
-                       (println "Reading inbound messages..." e))
-                     (finally (close inbound-channel)))
-                   (Thread/sleep request-timeout)))))))
+        num-attempts 10
+        request-timeout 500]
+    (attempt "conctacting master" (contact-master 
+                                   client-channel instance 
+                                   num-attempts request-timeout
+                                   invite-request))))
 
 (defn -main [& args] ; args -> slave-instance
   (let
@@ -128,13 +140,15 @@
                        :privatekey "narodnikkey" 
                        :master-host {:host "localhost"
                                      :port 10666}
-                       :inbound-port 6613}]
+                       :inbound-port 10201}]
 
     (println "Starting Narodnik slave...")
-
     (let [client-channel @(udp-object-socket 
                            {:port (:inbound-port slave-instance)})]
-      (future (init-follow-master-thread client-channel slave-instance)))
+      (future 
+        (init-follow-master-thread 
+         client-channel
+         slave-instance)))
     (loop [lines (repeatedly read-line)]
       (let [input (first lines)]
         (when (not= "exit" input)

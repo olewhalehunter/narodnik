@@ -6,8 +6,7 @@
    [validateur validation]
    [narodnik-server library]
    [narodnik-server data]
-   [narodnik-server exchange]
-))
+   [narodnik-server exchange]))
 
 (comment "Slave Invitation process:"
 (personal?) private key sent via third party or sent with slave install
@@ -19,8 +18,7 @@ that :machineid are validated against the :publickey
 
 (defn authenticated? [provided-name provided-publickey]
   (try 
-    (let [claimed-machine 
-          (db-select :machine :name provided-name)]
+    (let [claimed-machine (db-select :machine :name provided-name)]
       (= (:publickey claimed-machine) 
          provided-publickey))
     (catch Exception e false)))
@@ -104,15 +102,15 @@ that :machineid are validated against the :publickey
                    {:host (:host datagram)
                     :port (:port datagram)})))
         (catch Exception e 
-          (comment println "Waiting for inbound messages..."))
+          (comment println "Waiting for inbouyyynd messages..."))
         (finally (close inbound-channel)))
         (Thread/sleep handler-interval)
         (handler-thread instance))))
 
 (defn process-job! [job instance]
   (println "Processing job : " (str job) )
-    (db-update! :job :taskid (:taskid job) 
-                {:status "assigned"})
+    ;; (db-update! :job :taskid (:taskid job) 
+    ;;             {:status "assigned"})
     (let
          [outbound-channel @(udp-object-socket)
           task (get-task-of-job job)
@@ -146,7 +144,7 @@ that :machineid are validated against the :publickey
              task (get-task-of-job (first jobs))
              slave (get-slave-of-job (first jobs))]
           (println "Looking up host of slave : " (str slave))
-          (let [slave-host (get-host-of-machine slave)]
+          (let [slave-host (get-host-of-machine slave)] ;; need confirm loop
             (println "Sending task as message :" (str task))
             (enqueue outbound-channel 
                      {:message (:message task)

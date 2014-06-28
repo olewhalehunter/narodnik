@@ -8,9 +8,9 @@
 
 (defn make-job [task machine]{
                               :slavetype "machine"
-                              :slaveid (str "'" (:name machine) "'")
+                              :slaveid (str (:name machine) )
                               :taskid (:id task)
-                              :status "'undone'"
+                              :status "undone"
                               :starttime (datetime-now)
                               :endtime "NULL"
                               })
@@ -22,21 +22,16 @@
     (map (fn [slave] (let [task (make-task message)]
                   (db-insert! :task task)
                   (db-insert! :job (make-job task slave))))
-         machines)))
+         machines))) ; redef as macro? <3<3<3
 
 (defn greet-slave-job! [machine]
-  (try
-  (let [task (make-task "\"Greetings.\"")]
-    (let [greeting (make-job task machine) ]
-         (db-insert! :job greeting)
-         (db-insert! :task task)))
-  (catch Exception e (println "Error greeting slave :" e))))
+           (let [task (make-task "\"Greetings.\"")]
+             (let [greeting (make-job task machine) ]
+               (db-insert! :job greeting)
+               (db-insert! :task task))))
 
 
 (defn test-package []
   (give-all-job "(println \"Hello World!\")"))
 
- (future
-   (fn [x] 
-      (Thread/sleep 1000)
-      (test-package)))
+ 
