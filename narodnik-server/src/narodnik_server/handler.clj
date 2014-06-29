@@ -88,7 +88,7 @@ that :machineid are validated against the :publickey
   "For updating status updates 
    and CRUD operations from slaves."
 
-  (let [timeout 500
+  (let [timeout 50
         handler-interval 3000
         inbound-channel @(udp-object-socket 
                           {:port (:inbound-port instance)})] ; miliseconds
@@ -102,7 +102,7 @@ that :machineid are validated against the :publickey
                    {:host (:host datagram)
                     :port (:port datagram)})))
         (catch Exception e 
-          (comment println "Waiting for inbouyyynd messages..."))
+          (comment println "Waiting for inbound messages..."))
         (finally (close inbound-channel)))
         (Thread/sleep handler-interval)
         (handler-thread instance))))
@@ -129,27 +129,14 @@ that :machineid are validated against the :publickey
   (println "Job processed.")))
 
 (defn task-assign-thread [instance]
-  "Assigning tasks from jobs as sent messages to slaves."
-  (while true ; recur instead
-    (Thread/sleep 5)
-    (comment println "Taking job from queue...")
-    (let [outbound-port (:outbound-port instance)
-          jobs (db-select :job :status "'undone'")]
-      (if (not (empty? jobs))
-        (process-job! (first jobs) instance)
-        (comment println "No jobs to process."
-        (comment
-        (let 
-            [outbound-channel @(udp-object-socket)
-             task (get-task-of-job (first jobs))
-             slave (get-slave-of-job (first jobs))]
-          (println "Looking up host of slave : " (str slave))
-          (let [slave-host (get-host-of-machine slave)] ;; need confirm loop
-            (println "Sending task as message :" (str task))
-            (enqueue outbound-channel 
-                     {:message (:message task)
-                      :host (:host slave-host)
-                      :port (:port slave-host) }))))))))
+  (Thread/sleep 10)
+  (println "Assigning tasks from jobs as sent messages to slaves.")
+  (attempt "assigning jobs" (doall
+           (let [jobs (db-select :job :status "'undone'")]
+             (if (not (empty? jobs))
+               (map (fn [job] 
+                      (process-job! job instance))
+                    jobs)))))
   (task-assign-thread instance))
 
 (defn -main [& args]
@@ -157,7 +144,6 @@ that :machineid are validated against the :publickey
   (drop-all-tables)
   (init-db)
   (let [master-instance {:privatekey "narodnikkey" 
-                         :outbound-port 10201
                          :inbound-port 10666}]
     (future
       (task-assign-thread master-instance))

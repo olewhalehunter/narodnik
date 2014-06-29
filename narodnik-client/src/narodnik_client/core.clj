@@ -1,7 +1,8 @@
 (ns narodnik-client.core (:gen-class)
   (:use 
    [aleph udp]
-   [lamina core api]))
+   [lamina core api]
+   [criterium core]))
 
 (comment
   ;; workflow structure
@@ -62,36 +63,21 @@
    }}
   )
 
-(def slave-instance 
-  {
-   :machineid "svordman"
-   :publickey "Ha79000"
-   :privatekey "narodnikkey" 
-   :master-host {:host "localhost"
-                 :port 10666}
-   :inbound-port 10201
-   :suppress-output true
-   })
-
-(def successful-inbound-packets (atom 0))
 (def total-inbound-packets (atom 0))
+(def successful-inbound-packets (atom 0))
 
 (defmacro attempt [desc exp]
-  `(try ~exp
+  `(try (do ~exp)
        (catch Exception error# (println 
                            "Error attempting " ~desc
                            " : " error#))))
-
-(defn output [info]
-  (if (not (:suppress-output slave-instance))
-    (println info)))
 
 (defn handle-message [message client-channel instance]
   (println "Handling :" message))
 
 (defn slave-handler-thread [client-channel instance]
   "Slave inbound thread."
-  (let [handler-interval 5]
+  (let [handler-interval 2]
     (println "Slave handler thread...")
       (Thread/sleep handler-interval)
       (try
@@ -101,11 +87,11 @@
           (comment println "Recieved from host " (str (:host datagram))
                    " " (str datagram))
           (swap! successful-inbound-packets inc)
-          (future 
-            (handle-message (handle-message (:message datagram)
-          ))))
+          (attempt "handle message"
+                   (handle-message (:message datagram)
+                                   client-channel instance)))
         (catch java.util.concurrent.TimeoutException e 
-          (println "Timeout reading inbound messages..."))
+          (comment println "Timeout reading inbound messages..."))
         (finally 
           (comment close client-channel)
           (swap! total-inbound-packets inc)
@@ -126,7 +112,6 @@
                                        request-timeout)]
         (println "Recieved from host " (str (:host datagram))
                  " " (str datagram))
-        (swap! successful-inbound-packets inc)
         (slave-handler-thread client-channel instance))
       (catch java.util.concurrent.TimeoutException e 
         (println "Request for greeting timed out...")
@@ -137,9 +122,7 @@
                                         request-timeout
                                         invite-request))))
       (finally 
-        (comment close client-channel)
-        (swap! total-inbound-packets inc)
-        (Thread/sleep request-timeout))))
+        (comment close client-channel))))
 
 (defn init-follow-master-thread [client-channel instance]
   (println "Contacting master...")
@@ -162,25 +145,41 @@
            (str @successful-inbound-packets)
            " / " (str @total-inbound-packets)))
 
-(defn -main [& args] ; args -> slave-instance
-  (println "Starting Narodnik slave...")
-  (time (doall 
-         (let [client-channel @(udp-object-socket 
-                                {:port (:inbound-port slave-instance)})]
-           (future 
-             (init-follow-master-thread 
-              client-channel
-              slave-instance)))
-         (loop [lines (repeatedly read-line)]
-           (let [input (first lines)]
-             (when (not= "exit" input)
-               (try 
-                 (load-string input) 
-                 (catch Exception e 
-                   (println "Could not evaluate '" input "'.")))
-               (recur (next lines)))))))
-  (calculate-throughput slave-instance)
-  (println "Narodnik slave shutting down...")
-  (System/exit 0))
+(defn slave-runtime [instance client-channel]
+  (future (init-follow-master-thread 
+           client-channel
+           instance))
+  (loop [lines (repeatedly read-line)]
+    (let [input (first lines)]
+      (if (not= "exit" input)
+        (try 
+          (load-string input) 
+          (catch Exception e 
+            (println "Could not evaluate '" input "'.")))
+        (recur (next lines))))))
 
+(defn -main [& args] ; args -> (machineid, publickey, inbound-port)
+  (println "Starting Narodnik slave with args '" (str args) "'...")
+  (if (not (= (count args) 3))
+    (println  
+     "\n\rArguments should be machineid, publickey, and inbound port.\n\r")
+    (attempt 
+     "narodnik slave-startup"   (time (doall
+     (let 
+         [slave-instance {:machineid (first args)
+                          :publickey (second args)
+                          :privatekey "narodnikkey" 
+                          :master-host {:host "localhost"
+                                        :port 10666}
+                          :inbound-port (bigdec (nth args 2))
+                          :suppress-output true}
+          client-channel @(udp-object-socket 
+                           {:port (:inbound-port slave-instance)})]
+       
+       (slave-runtime slave-instance
+                             client-channel)
+       (close client-channel)
+       (calculate-throughput slave-instance))))))
+    (println "Narodnik slave shutting down...")    
+    (System/exit 0))
 

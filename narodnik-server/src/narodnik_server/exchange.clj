@@ -25,7 +25,17 @@
          machines))) ; redef as macro? <3<3<3
 
 (defn greet-slave-job! [machine]
-           (let [task (make-task "\"Greetings.\"")]
+           (let [task (make-task "\"Greetings.
+=-=-=
+THIS MESSAGE WILL BE AUTHENTICATED
+AGAINST A PUBLIC AND PRIVATE KEY
+
+NO COMPRESSION OR CACHING IS USED
+
+SOME POSTGRE QUERIES HAD TO BE MADE AS WELL
+TO FETCH THIS STUFF
+=-=-=-=--
+\"")] ;^-242-bytes-^
              (let [greeting (make-job task machine) ]
                (db-insert! :job greeting)
                (db-insert! :task task))))
