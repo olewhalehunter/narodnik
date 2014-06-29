@@ -116,7 +116,7 @@
   (first (db-select :task :id (:taskid job))))
 
 (defn get-machine [name]
-  (db-select :machine :name (str "'" name "'")))
+  (first (db-select :machine :name (str "'" name "'"))))
 
 (defn exists-machine? [name] 
   (not (empty? (db-select :machine :name (str "'" name "'")))))
@@ -129,4 +129,4 @@
 
 (defn get-slave-of-job [job]
   (println "Looking up slave for job.")
-  (first (db-select :machine :name (str "'" (:slaveid job) "'"))))
+  (get-machine (:slaveid job)))

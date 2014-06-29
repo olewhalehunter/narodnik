@@ -8,7 +8,7 @@ Use Narodnik to...:
 * make a networked virtual machine
 * start a botnet
 * automate web testing
-* create distributed systems
+* create distributed and real-time systems
 
 Licensed under the GNU Affero Public License.
 
@@ -25,17 +25,17 @@ narodnik-server:
 
 security and networking/package:
 
-* eval scoping/isolation -> API?, limited to package definitions
+* eval scoping/isolation api, limited to package defns, byte-compiled msgs
 * p2p communication and chaining with common state
 * dynamic port allocation/reassignment
 * request per-ip throttle
 * buffer limit
-* tune packet traffic
+* tunneling over non-udp protocol
 
 speed & optimization:
 
 * caching; machines, hosts, dynamic?
-* suppress output on server.clj
+* compile final exchange/package interface messages to byte encoding
 
 future other:
 

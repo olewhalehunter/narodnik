@@ -63,6 +63,14 @@
    }}
   )
 
+(def slave-config {
+                   :privatekey "narodnikkey"
+                   :master-host "localhost"
+                   :master-port 10666
+                   :suppress-output false
+                   :handler-interval 1000
+                   :listener-timout 1000})
+
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
 
@@ -72,12 +80,36 @@
                            "Error attempting " ~desc
                            " : " error#))))
 
+(defn create-message [command taskid instance]
+  {:message {
+             :body {
+                    :command command
+                    :taskid taskid}
+             :name (:machineid instance)
+             :privatekey (:privatekey instance)
+             :publickey (:publickey instance)}
+   :host (:host (:master-host instance))
+   :port (:port (:master-host instance))})
+
+(defn complete-invite [taskid client-channel instance]
+  (println "Completing invitation...")
+  (attempt "completing invitation"
+           (let [reply-message (create-message "Joined." taskid instance)]
+             (println "Sending reply message " (str reply-message))
+             (enqueue client-channel reply-message))))
+
 (defn handle-message [message client-channel instance]
-  (println "Handling :" message))
+  (println "Handling :" message)
+  (let [content (:content (:body (:message message)))
+        taskid (:id (:body (:message message)))]
+    (println "Content is " content)
+    (println "Taskid is " (str taskid))
+    (cond 
+     (= content "\"Greetings.\"") (complete-invite taskid client-channel instance))))
 
 (defn slave-handler-thread [client-channel instance]
   "Slave inbound thread."
-  (let [handler-interval 2]
+  (let [handler-interval (:handler-interval slave-config)]
     (println "Slave handler thread...")
       (Thread/sleep handler-interval)
       (try
@@ -88,7 +120,7 @@
                    " " (str datagram))
           (swap! successful-inbound-packets inc)
           (attempt "handle message"
-                   (handle-message (:message datagram)
+                   (handle-message datagram
                                    client-channel instance)))
         (catch java.util.concurrent.TimeoutException e 
           (comment println "Timeout reading inbound messages..."))
@@ -101,15 +133,15 @@
 
   [client-channel instance
    num-attempts request-timeout
-   invite-request]
+   invite-message]
 
     (println "Attempting to contact master...")
-    (enqueue client-channel invite-request)
+    (enqueue client-channel invite-message)
     (println "Message sent.")
     (try
       (println "Waiting for greeting back from master...")
       (let [datagram (wait-for-message client-channel 
-                                       request-timeout)]
+                                       1000)]
         (println "Recieved from host " (str (:host datagram))
                  " " (str datagram))
         (slave-handler-thread client-channel instance))
@@ -120,7 +152,7 @@
                                         client-channel 
                                         instance (- num-attempts 1)
                                         request-timeout
-                                        invite-request))))
+                                        invite-message))))
       (finally 
         (comment close client-channel))))
 
@@ -134,7 +166,7 @@
                         :host (:host (:master-host instance))
                         :port (:port (:master-host instance))}
         num-attempts 10
-        request-timeout 500]
+        request-timeout (:listener-timeout slave-config)]
     (attempt "conctacting master" (contact-master 
                                    client-channel instance 
                                    num-attempts request-timeout
@@ -158,7 +190,7 @@
             (println "Could not evaluate '" input "'.")))
         (recur (next lines))))))
 
-(defn -main [& args] ; args -> (machineid, publickey, inbound-port)
+(defn -main [& args] 
   (println "Starting Narodnik slave with args '" (str args) "'...")
   (if (not (= (count args) 3))
     (println  
@@ -166,13 +198,14 @@
     (attempt 
      "narodnik slave-startup"   
      (let 
-         [slave-instance {:machineid (first args)
+         [slave-instance {
+                          :machineid (first args)
                           :publickey (second args)
-                          :privatekey "narodnikkey" 
-                          :master-host {:host "localhost"
-                                        :port 10666}
+                          :privatekey (:privatekey slave-config) 
+                          :master-host {:host (:master-host slave-config)
+                                        :port (:master-port slave-config)}
                           :inbound-port (bigdec (nth args 2))
-                          :suppress-output true}
+                          :suppress-output (:suppress-output slave-config)}
           client-channel @(udp-object-socket 
                            {:port (:inbound-port slave-instance)})]
        (time (doall
