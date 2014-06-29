@@ -8,12 +8,12 @@
    [narodnik-server data]
    [narodnik-server exchange]))
 
-(comment "Slave Invitation process:"
-(personal?) private key sent via third party or sent with slave install
-transport-layer string encrypted and authorized with private key
-slave registers via publickey and machineid
-master stores credentials and further requests from 
-that :machineid are validated against the :publickey
+(comment todo...
+(def machine-cache (atom {}))
+
+(def host-cache (atom {}))
+
+(defn dynamic-cache ()) ;... in seperate lookup file?
 )
 
 (defn authenticated? [provided-name provided-publickey]
@@ -108,22 +108,22 @@ that :machineid are validated against the :publickey
         (handler-thread instance))))
 
 (defn process-job! [job instance]
-  (println "Processing job : " (str job) )
+  (comment println "Processing job : " (str job) )
     ;; (db-update! :job :taskid (:taskid job) 
     ;;             {:status "assigned"})
     (let
          [outbound-channel @(udp-object-socket)
           task (get-task-of-job job)
           slave (get-slave-of-job job)]
-         (println "Found slave : " slave " for job.")
+         (comment println "Found slave : " slave " for job.")
          (let [slave-host (get-host-of-machine slave)]
-           (println "Sending task as message :" (str task) 
+           (comment println "Sending task as message :" (str task) 
                     "to host" (str slave-host))
            (let [message {
                           :message (:content task)
                           :host (:address slave-host)
                           :port (:port slave-host)}]
-             (print "Sending message : " (str message))
+             (comment print "Sending message : " (str message))
              (attempt "send message channel " 
                       (enqueue outbound-channel message))))
   (println "Job processed.")))

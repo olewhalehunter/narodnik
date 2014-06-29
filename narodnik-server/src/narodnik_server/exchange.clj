@@ -35,13 +35,14 @@ NO COMPRESSION OR CACHING IS USED
 SOME POSTGRE QUERIES HAD TO BE MADE AS WELL
 TO FETCH THIS STUFF
 =-=-=-=--
-\"")] ;^-242-bytes-^
+\"")] ;^-375-bytes with other headers-^
              (let [greeting (make-job task machine) ]
                (db-insert! :job greeting)
                (db-insert! :task task))))
 
 
 (defn test-package []
+
   (give-all-job "(println \"Hello World!\")"))
 
  
