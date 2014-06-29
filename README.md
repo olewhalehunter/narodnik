@@ -23,7 +23,7 @@ narodnik-server:
 * ? allowed evals lookup for client callbacks in each package?
 * crud api and sample workflow
 
-future security and networking/package:
+security and networking/package:
 
 * eval scoping/isolation -> API?, limited to package definitions
 * p2p communication and chaining with common state
@@ -31,6 +31,11 @@ future security and networking/package:
 * request per-ip throttle
 * buffer limit
 * tune packet traffic
+
+speed & optimization:
+
+*credential/host caching as atom map
+*suppress output on server.clj
 
 future other:
 
