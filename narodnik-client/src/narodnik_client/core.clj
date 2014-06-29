@@ -1,8 +1,8 @@
 (ns narodnik-client.core (:gen-class)
-  (:use 
-   [aleph udp]
-   [lamina core api]
-   [criterium core]))
+    (:use 
+     [aleph udp]
+     [lamina core api]
+     [criterium core]))
 
 (comment
   ;; workflow structure
@@ -164,7 +164,7 @@
     (println  
      "\n\rArguments should be machineid, publickey, and inbound port.\n\r")
     (attempt 
-     "narodnik slave-startup"   (time (doall
+     "narodnik slave-startup"   
      (let 
          [slave-instance {:machineid (first args)
                           :publickey (second args)
@@ -175,11 +175,11 @@
                           :suppress-output true}
           client-channel @(udp-object-socket 
                            {:port (:inbound-port slave-instance)})]
-       
-       (slave-runtime slave-instance
-                             client-channel)
+       (time (doall
+              (slave-runtime slave-instance
+                             client-channel)))
        (close client-channel)
-       (calculate-throughput slave-instance))))))
+       (calculate-throughput slave-instance))))
     (println "Narodnik slave shutting down...")    
     (System/exit 0))
 
