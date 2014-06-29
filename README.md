@@ -34,8 +34,8 @@ security and networking/package:
 
 speed & optimization:
 
-*credential/host caching as atom map
-*suppress output on server.clj
+* credential/host caching as atom map
+* suppress output on server.clj
 
 future other:
 
