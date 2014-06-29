@@ -60,7 +60,21 @@
    :publickey "Ha79000"
    :machineid 3
    }}
-)
+  )
+
+(def slave-instance 
+  {
+   :machineid "svordman"
+   :publickey "Ha79000"
+   :privatekey "narodnikkey" 
+   :master-host {:host "localhost"
+                 :port 10666}
+   :inbound-port 10201
+   :suppress-output true
+   })
+
+(def successful-inbound-packets (atom 0))
+(def total-inbound-packets (atom 0))
 
 (defmacro attempt [desc exp]
   `(try ~exp
@@ -68,26 +82,34 @@
                            "Error attempting " ~desc
                            " : " error#))))
 
+(defn output [info]
+  (if (not (:suppress-output slave-instance))
+    (println info)))
+
 (defn handle-message [message client-channel instance]
   (println "Handling :" message))
 
 (defn slave-handler-thread [client-channel instance]
   "Slave inbound thread."
-  (let [handler-interval 5000]
+  (let [handler-interval 5]
     (println "Slave handler thread...")
       (Thread/sleep handler-interval)
       (try
         (println "Waiting for job...")
         (let [datagram (wait-for-message client-channel 
                                          handler-interval)]
-          (println "Recieved from host " (str (:host datagram))
+          (comment println "Recieved from host " (str (:host datagram))
                    " " (str datagram))
+          (swap! successful-inbound-packets inc)
           (future 
             (handle-message (handle-message (:message datagram)
+          ))))
+        (catch java.util.concurrent.TimeoutException e 
+          (println "Timeout reading inbound messages..."))
+        (finally 
+          (comment close client-channel)
+          (swap! total-inbound-packets inc)
           (slave-handler-thread client-channel instance)))))
-        (catch Exception e 
-          (println "Reading inbound messages..." e))
-        (finally (close client-channel)))))
 
 (defn contact-master 
 
@@ -104,18 +126,20 @@
                                        request-timeout)]
         (println "Recieved from host " (str (:host datagram))
                  " " (str datagram))
+        (swap! successful-inbound-packets inc)
         (slave-handler-thread client-channel instance))
-      (catch Exception e 
-        (println "Request for greeting timed out..." e))
-      (finally (close client-channel)
-               (Thread/sleep request-timeout)
-               (if (> num-attempts 0) 
-                 (attempt "contacting master" (contact-master 
-                                            client-channel 
-                                            instance (- num-attempts 1)
-                                            request-timeout
-                                            invite-request))
-                 (println "Could not contact master.")))))
+      (catch java.util.concurrent.TimeoutException e 
+        (println "Request for greeting timed out...")
+        (if (> num-attempts 0) 
+          (attempt "contacting master" (contact-master 
+                                        client-channel 
+                                        instance (- num-attempts 1)
+                                        request-timeout
+                                        invite-request))))
+      (finally 
+        (comment close client-channel)
+        (swap! total-inbound-packets inc)
+        (Thread/sleep request-timeout))))
 
 (defn init-follow-master-thread [client-channel instance]
   (println "Contacting master...")
@@ -133,31 +157,30 @@
                                    num-attempts request-timeout
                                    invite-request))))
 
-(defn -main [& args] ; args -> slave-instance
-  (let
-      [slave-instance {:machineid "svordman"
-                       :publickey "Ha79000"
-                       :privatekey "narodnikkey" 
-                       :master-host {:host "localhost"
-                                     :port 10666}
-                       :inbound-port 10201}]
+(defn calculate-throughput [instance]
+  (println "Throughput was " 
+           (str @successful-inbound-packets)
+           " / " (str @total-inbound-packets)))
 
-    (println "Starting Narodnik slave...")
-    (let [client-channel @(udp-object-socket 
-                           {:port (:inbound-port slave-instance)})]
-      (future 
-        (init-follow-master-thread 
-         client-channel
-         slave-instance)))
-    (loop [lines (repeatedly read-line)]
-      (let [input (first lines)]
-        (when (not= "exit" input)
-          (try 
-            (load-string input) 
-            (catch Exception e 
-              (println "Could not evaluate '" input "'.")))
-          (recur (next lines))
-          )))
-    (println "Narodnik slave shutting down...")
-    (System/exit 0)))
+(defn -main [& args] ; args -> slave-instance
+  (println "Starting Narodnik slave...")
+  (time (doall 
+         (let [client-channel @(udp-object-socket 
+                                {:port (:inbound-port slave-instance)})]
+           (future 
+             (init-follow-master-thread 
+              client-channel
+              slave-instance)))
+         (loop [lines (repeatedly read-line)]
+           (let [input (first lines)]
+             (when (not= "exit" input)
+               (try 
+                 (load-string input) 
+                 (catch Exception e 
+                   (println "Could not evaluate '" input "'.")))
+               (recur (next lines)))))))
+  (calculate-throughput slave-instance)
+  (println "Narodnik slave shutting down...")
+  (System/exit 0))
+
 

@@ -130,8 +130,8 @@ that :machineid are validated against the :publickey
 
 (defn task-assign-thread [instance]
   "Assigning tasks from jobs as sent messages to slaves."
-  (while true
-    (Thread/sleep 3000)
+  (while true ; recur instead
+    (Thread/sleep 5)
     (comment println "Taking job from queue...")
     (let [outbound-port (:outbound-port instance)
           jobs (db-select :job :status "'undone'")]
