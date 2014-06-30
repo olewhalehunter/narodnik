@@ -66,9 +66,10 @@
 
 (def slave-config {
                    :privatekey "narodnikkey"
-                   :master-host "192.168.61.1"
+                   :master-host "10.226.200.173"
                    :master-port 10666
                    :suppress-output false
+                   :num-contact-attempts 20
                    :handler-interval (* 10 speed)
                    :listener-timout (* 10 speed)})
 
@@ -106,7 +107,8 @@
     (println "Content is " content)
     (println "Taskid is " (str taskid))
     (cond 
-     (= content "\"Greetings.\"") (complete-invite taskid client-channel instance))))
+     (= content "\"Greetings.\"") 
+     (complete-invite taskid client-channel instance))))
 
 (defn slave-handler-thread [client-channel instance]
   "Slave inbound thread."
@@ -117,8 +119,9 @@
         (println "Waiting for job...")
         (let [datagram (wait-for-message client-channel 
                                          handler-interval)]
-          (comment println "Recieved from host " (str (:host datagram))
-                   " " (str datagram))
+          (comment println "Recieved from host " 
+                   (str (:host datagram))
+                   " , datagram : " (str datagram))
           (swap! successful-inbound-packets inc)
           (attempt "handle message"
                    (handle-message datagram
@@ -166,7 +169,7 @@
                                   :publickey (:publickey instance)}
                         :host (:host (:master-host instance))
                         :port (:port (:master-host instance))}
-        num-attempts 10
+        num-attempts (:num-contact-attempts slave-config)
         request-timeout (:listener-timeout slave-config)]
     (attempt "conctacting master" (contact-master 
                                    client-channel instance 

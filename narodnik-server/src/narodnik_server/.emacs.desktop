@@ -1,0 +1,249 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Mon Jun 30 14:31:23 2014
+;; Desktop file format version 206
+;; Emacs version 24.3.1
+
+;; Global section:
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring '("error" "inbound" "waiting " "waiting for inb" "narodnik" "error" "slave-confg" "error" "120" ",ckh" ".ss" "cider" "listener-int" "db-update" "datetime-now" "task"))
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+(setq file-name-history '("c:/development/narod/narodnik/narodnik-server/src/narodnik_server/" "c:/development/narod/narodnik/narodnik-server/" "c:/development/narod/narodnik/narodnik-client/src/narodnik_client/" "c:/development/narod/narodnik/narodnik-server/src/narodnik_server/" "c:/development/narod/narodnik/narodnik-server/" "c:/Users/apuckett/Desktop/dev/emacs-tools/"))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/src/narodnik_server/handler.clj"
+  "handler.clj"
+  'clojure-mode
+  '(hs-minor-mode highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode linum-mode)
+  3441
+  '(5414 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/users/apuckett/Desktop/dev/plans.ss"
+  "plans.ss<2>"
+  'scheme-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode)
+  2962
+  '(2948 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-client/src/narodnik_client/core.clj"
+  "core.clj"
+  'clojure-mode
+  '(hs-minor-mode highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode linum-mode)
+  6344
+  '(2235 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/users/apuckett/Desktop/dev/emacs-tools/.emacs"
+  ".emacs<2>"
+  'emacs-lisp-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  7270
+  '(5349 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  nil
+  "narodnik"
+  'dired-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  1016
+  '(1016 nil)
+  t
+  '("c:/development/narod/narodnik/")
+  nil)
+
+(desktop-create-buffer 206
+  nil
+  "dev"
+  'dired-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  593
+  '(nil nil)
+  t
+  '("c:/Users/apuckett/Desktop/dev/")
+  nil)
+
+(desktop-create-buffer 206
+  "c:/users/apuckett/Desktop/demopackage/start.bat"
+  "start.bat"
+  'fundamental-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  84
+  '(78 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . iso-latin-1-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-client/project.clj"
+  "project.clj"
+  'clojure-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode)
+  574
+  '(506 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/project.clj"
+  "project.clj<2>"
+  'clojure-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  447
+  '(446 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/serverlog.txt"
+  "serverlog.txt"
+  'fundamental-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  64177
+  '(61749 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  nil
+  "src"
+  'dired-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  282
+  '(282 nil)
+  t
+  '("c:/development/narod/narodnik/narodnik-client/src/")
+  nil)
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/src/narodnik_server/data.clj"
+  "data.clj"
+  'clojure-mode
+  '(hs-minor-mode highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode linum-mode)
+  2808
+  '(2618 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/src/narodnik_server/exchange.clj"
+  "exchange.clj"
+  'clojure-mode
+  '(hs-minor-mode highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode)
+  1197
+  '(1122 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/log.txt"
+  "log.txt"
+  'fundamental-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  1994725
+  '(1 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/logserv.txt"
+  "logserv.txt"
+  'fundamental-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  81182
+  '(1 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  nil
+  "narodnik_client"
+  'dired-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  282
+  '(nil nil)
+  t
+  '("c:/development/narod/narodnik/narodnik-client/src/narodnik_client/")
+  nil)
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/dev-environ/narodnik.el"
+  "narodnik.el"
+  'emacs-lisp-mode
+  '(hs-minor-mode highlight-parentheses-mode rainbow-delimiters-mode)
+  488
+  '(369 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/users/apuckett/.emacs"
+  ".emacs"
+  'emacs-lisp-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  733
+  '(725 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-dos)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/README.md"
+  "README.md"
+  'fundamental-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode)
+  313
+  '(313 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-dos)))
+
+(desktop-create-buffer 206
+  "c:/users/apuckett/Desktop/dev/inspiration.el"
+  "inspiration.el"
+  'emacs-lisp-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode text-scale-mode)
+  1574
+  '(1589 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "c:/development/narod/narodnik/narodnik-server/.lein-deps-sum"
+  ".lein-deps-sum"
+  'fundamental-mode
+  '(highlight-parentheses-mode rainbow-delimiters-mode)
+  1
+  '(nil nil)
+  nil
+  nil
+  nil)
+

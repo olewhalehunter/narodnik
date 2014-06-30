@@ -113,25 +113,29 @@
 (defn handler-thread [instance]
   "For updating status updates 
    and CRUD operations from slaves."
-
-  (let [timeout (:listener-timeout master-config)
-        handler-interval  (:handler-interval master-config)
-        inbound-channel @(udp-object-socket 
-                          {:port (:inbound-port instance)})] ; miliseconds
-    (try
-      (let [datagram (wait-for-message inbound-channel timeout)]
-        (println "Recieved from host " (str (:host datagram)) ":" (str (:port datagram))
-                 " : " (str datagram))
-        (future (handle-inbound-message 
-                 (:message datagram) 
-                 instance
-                 {:host (:host datagram)
-                  :port (:port datagram)})))
-      (catch Exception e 
-        (comment println "Waiting for inbound messages..."))
-      (finally (close inbound-channel)))
-    (Thread/sleep handler-interval))
-  (handler-thread instance))
+  (try 
+    (let [timeout (:listener-timeout master-config)
+          handler-interval  (:handler-interval master-config)
+          inbound-channel @(udp-object-socket 
+                            {:port (:inbound-port instance)})] ; miliseconds
+      (try
+        (let [datagram (wait-for-message inbound-channel timeout)]
+          (println "Recieved from host " (str (:host datagram)) ":" (str (:port datagram))
+                   " : " (str datagram))
+          (future (handle-inbound-message 
+                   (:message datagram) 
+                   instance
+                   {:host (:host datagram)
+                    :port (:port datagram)})))
+        (catch Throwable e 
+          (comment println "Waiting for inbound messages..."))
+        (finally (close inbound-channel)))
+      (Thread/sleep handler-interval))
+    (catch Throwable e
+      (println "Error listening on port" (str (:inbound-port instance))
+               " , " (str e)))
+    (finally
+      (handler-thread instance))))
 
 (defn process-job! [job instance]
   (comment println "Processing job : " (str job) )
