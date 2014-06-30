@@ -36,9 +36,29 @@
         (println "Could not authenticate " provided-name " , " (str e)))
       (finally false))))
 
+(defn update-machine-status [machine status]
+  (attempt "updating machine status" (do
+                                       (println "Updating machine : " machine " to status : " status)
+                                       (db-update! :machine :name (:name machine) {:status status}))))
+
+(defn update-job-status [taskid status]
+  (attempt "updating job status" (do
+                                   (let [job (get-job-by-taskid taskid)]
+                                     (println "Updating job : " job " to status : " status)
+                                     (db-update! :job :taskid (:taskid job)
+                                                 {:status status})))))
+
 (defn handle-authorized-message [message host]
-  (println "Handling authorized message " (str (:body message)) 
-           " from machine '" (:name message) "'" ))
+  (println "Handling authorized message "  message)
+  (attempt "handling authorized message"
+           (let [command (:command (:body message))
+                 taskid (:taskid (:body message))
+                 machine-name (:name message)]
+             (println "Command is " command)
+             (println "Machine name is " machine-name)
+             (cond (= command "Joined.")
+                   (update-machine-status (get-machine machine-name) "free"))
+              (update-job-status taskid "completed"))))
 
 (defn handle-invite-message [message host]
   (println "Handling invite message from " (str host))

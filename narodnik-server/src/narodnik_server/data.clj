@@ -115,6 +115,9 @@
 (defn get-task-of-job [job]
   (first (db-select :task :id (:taskid job))))
 
+(defn get-job-by-taskid [taskid]
+  (first (db-select :job :taskid taskid)))
+
 (defn get-machine [name]
   (first (db-select :machine :name (str "'" name "'"))))
 

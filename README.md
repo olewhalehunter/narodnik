@@ -47,7 +47,6 @@ future other:
 
 narodnik-client:
 
-* handle-task, task status tracking
 * slave deploy/install folder structure
 * write-userscript templating lib (scriptish)
 * create sample workflow packages
