@@ -15,11 +15,13 @@
 (defn dynamic-cache ()) ;... in seperate lookup file?
 )
 
+(def speed 1)
+
 (def master-config { 
                     :privatekey "narodnikkey"
-                    :handler-interval 1000
-                    :listener-timeout 1000
-                    :assigner-interval 3000
+                    :handler-interval (* speed 10)
+                    :listener-timeout (* speed 100)
+                    :assigner-interval (* speed 10)
                     :inbound-port 10666})
 
 (defn authenticated? [provided-name provided-publickey]
@@ -116,21 +118,20 @@
         handler-interval  (:handler-interval master-config)
         inbound-channel @(udp-object-socket 
                           {:port (:inbound-port instance)})] ; miliseconds
-    (while true
-      (try
-        (let [datagram (wait-for-message inbound-channel timeout)]
-          (println "Recieved from host " (str (:host datagram)) ":" (str (:port datagram))
-                   " : " (str datagram))
-          (future (handle-inbound-message 
-                   (:message datagram) 
-                   instance
-                   {:host (:host datagram)
-                    :port (:port datagram)})))
-        (catch Exception e 
-          (comment println "Waiting for inbound messages..."))
-        (finally (close inbound-channel)))
-        (Thread/sleep handler-interval)
-        (handler-thread instance))))
+    (try
+      (let [datagram (wait-for-message inbound-channel timeout)]
+        (println "Recieved from host " (str (:host datagram)) ":" (str (:port datagram))
+                 " : " (str datagram))
+        (future (handle-inbound-message 
+                 (:message datagram) 
+                 instance
+                 {:host (:host datagram)
+                  :port (:port datagram)})))
+      (catch Exception e 
+        (comment println "Waiting for inbound messages..."))
+      (finally (close inbound-channel)))
+    (Thread/sleep handler-interval))
+  (handler-thread instance))
 
 (defn process-job! [job instance]
   (comment println "Processing job : " (str job) )

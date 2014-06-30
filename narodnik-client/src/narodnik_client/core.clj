@@ -1,8 +1,7 @@
 (ns narodnik-client.core (:gen-class)
     (:use 
      [aleph udp]
-     [lamina core api]
-     [criterium core]))
+     [lamina core api]))
 
 (comment
   ;; workflow structure
@@ -63,13 +62,15 @@
    }}
   )
 
+(def speed 1)
+
 (def slave-config {
                    :privatekey "narodnikkey"
-                   :master-host "localhost"
+                   :master-host "192.168.61.1"
                    :master-port 10666
                    :suppress-output false
-                   :handler-interval 1000
-                   :listener-timout 1000})
+                   :handler-interval (* 10 speed)
+                   :listener-timout (* 10 speed)})
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))

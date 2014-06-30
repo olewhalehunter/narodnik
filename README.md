@@ -18,7 +18,6 @@ See files in \dev-environ.
 
 narodnik-server:
 
-* job assign retry/proper job status flags, msg confirmation workflow/fn
 * load package
 * ? allowed evals lookup for client callbacks in each package?
 * crud api and sample workflow
