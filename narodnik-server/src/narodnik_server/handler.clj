@@ -43,10 +43,12 @@
 
 (defn update-job-status [taskid status]
   (attempt "updating job status" (do
-                                   (let [job (get-job-by-taskid taskid)]
-                                     (println "Updating job : " job " to status : " status)
-                                     (db-update! :job :taskid (:taskid job)
-                                                 {:status status})))))
+                                   (let [job (get-job-by-taskid taskid)
+                                         change-map {
+                                                     :status status
+                                                     :endtime (datetime-now)}]
+                                     (println "Updating job : " job " with map : " change-map)
+                                     (db-update! :job :taskid (:taskid job) change-map)))))
 
 (defn handle-authorized-message [message host]
   (println "Handling authorized message "  message)
