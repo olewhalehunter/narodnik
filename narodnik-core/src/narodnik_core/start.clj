@@ -4,6 +4,7 @@
    [narodnik-core slave]))
 
 (defn -main [& args]
-  (start-slave "bob" "bobspass" "10456")
-  ;(start-master [])
-)
+  (if (= (count args) 0)
+    (start-master [])
+    (apply start-slave args)))
+

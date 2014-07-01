@@ -1,7 +1,13 @@
 (ns narodnik-core.exchange
   (:use 
    [lamina core api]
+   [narodnik-core library]
    [narodnik-core data]))
+
+(comment "Narodnik packages"...
+"Functions here are to be api for building
+narodnik-reliant runtime client packages, the 
+user-agent/bot DSL." )
 
 (use '[clojure.java.shell :only [sh]])
 
@@ -32,20 +38,52 @@
                (db-insert! :job greeting)
                (db-insert! :task task))))
 
-(defn system-call [command]
-  (. (java.lang.Runtime/getRuntime) exec command))
+; System I/O calls on Winblows only for now
+
+(defn system-call [command] 
+  (:out (sh "cmd" "/C" command)))
 
 (defn find-firefox-location []
   "C:/Program Files (x86)/Mozilla Firefox/firefox.exe")
 
+; C:\Users\finduser\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default\scriptish_scripts
+;"C:/Users//AppData/Roaming/Mozilla/Firefox/Profiles/x1d8zrt8.default/scriptish_scripts/"
+
+(defn get-user-name []
+  (clojure.string/trim-newline 
+   (system-call "echo %username%")))
+
+(defn find-userscript-location []
+  (str "C:/Users/" (get-user-name)
+       "/AppData/Roaming/Mozilla/Firefox/Profiles/x1d8zrt8.default/scriptish_scripts/testjs/"))
+
+(defn userscript-template [name target message]
+(str
+"// ==UserScript==
+// @name " name "
+// @namespace   narodnik/scripts
+// @description a Narodnik firefox
+// @include     " target "
+// @version     1
+// @grant       none
+// ==/UserScript==
+
+alert(\"" message "\")
+"))
+
 (defn run-firefox-page [page]
-  (let [firefox-str (find-firefox-location)]
-    (sh firefox-str)))
+  (let [firefox-str (find-firefox-location)]  
+    (sh firefox-str page)))
+
+(run-firefox-page "http://www.reddit.com")
+
+(defn test-method []
+  ;(run-firefox-page "http://www.gmail.com")
+  (spit (str (find-userscript-location) "testjs.js") 
+        (userscript-template 
+         "hello world" 
+         "http://www.reddit.com/*"
+         "HELLO NARODNIK!")))
 
 (defn test-package []
-  (give-all-job "(sh \"C:/Program Files (x86)/Mozilla Firefox/firefox.exe\")")
-  (dotimes [n 50]
-    (give-all-job 
-    "(println \"Hello Narodnik!\")")))
-
- 
+    (give-all-job "test-package"))

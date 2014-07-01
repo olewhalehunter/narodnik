@@ -1,7 +1,8 @@
 (ns narodnik-core.slave (:gen-class)
     (:use 
      [aleph udp]
-     [lamina core api]))
+     [lamina core api]
+     [narodnik-core exchange]))
 
 (comment
   ;; workflow structure
@@ -109,7 +110,8 @@
 
 (defn process-task [taskid command client-channel instance]
   (attempt (str "processing task (" (str taskid) "): " command) (do
-           (load-string command)
+           (cond
+            (= command "test-package") (test-method))
            (complete-task taskid "Timestamp? Stats map?"
                           client-channel instance))))
 

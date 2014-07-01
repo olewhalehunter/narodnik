@@ -1,7 +1,7 @@
 # NARODNIK
 # народник
 
-A distributed user agent network in Clojure.
+A distributed user agent network in Clojure. 
 
 Use Narodnik to...:
 
@@ -18,7 +18,7 @@ See files in \dev-environ.
 
 narodnik-server:
 
-* load package
+* workflow packages
 * ? allowed evals lookup for client callbacks in each package?
 * crud api and sample workflow
 
@@ -47,9 +47,9 @@ future other:
 narodnik-client:
 
 * slave deploy/install folder structure
+* http callback for json feedback from browser runtimes
 * write-userscript templating lib (scriptish)
 * create sample workflow packages
-* same lib and distributable as server, config as uberjar profile
 
 installer:
 
@@ -65,16 +65,4 @@ install order:
 * find scriptish dir
 * install narodnik js runtime there
 
-design notes:
 
-* use clj not json for data/fn serialization
-* macro library to clean up jvm fns, exception handling
-* userscript notes...
-* C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default
-
-Windows:
-
-* "C:\Program Files (x86)\Mozilla Firefox\"
-* C:\Users\\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default\scriptish_scripts\testjs
-* taskkill /F /IM java.exe
-    

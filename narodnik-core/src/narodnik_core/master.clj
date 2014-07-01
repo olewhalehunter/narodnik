@@ -15,7 +15,7 @@
 (defn dynamic-cache ()) ;... in seperate lookup file?
 )
 
-(def master-speed 1)
+(def master-speed 25)
 
 (def master-config { 
                     :privatekey "narodnikkey"
