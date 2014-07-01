@@ -68,14 +68,16 @@
 
 (def slave-config {
                    :privatekey "narodnikkey"
-                   :master-host "localhost" ;10.226.200.173
-                   :master-port 10666
+                   :master-host "85f54r1.hs.mdmgr.net" 
+                   :master-port 445
                    :http-port 7070
                    :suppress-output false
                    :num-contact-attempts 20
                    :handler-interval (* 10 slave-speed)
                    :listener-timout (* 10 slave-speed)
-                   :browser-runtime true})
+                   :browser-runtime true
+                   :http-tunnel false
+                   :tunnel-port 445})
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
@@ -200,22 +202,9 @@
            (str @successful-inbound-packets) "inbound tasks"
            " / " (str @total-inbound-packets) " listens"))
 
-(defn slave-runtime [instance client-channel]
-  (future (init-follow-master-thread 
-           client-channel
-           instance))
-  (loop [lines (repeatedly read-line)]
-    (let [input (first lines)]
-      (if (not= "exit" input)
-        (try 
-          (load-string input) 
-          (catch Exception e 
-            (println "Could not evaluate '" input "'.")))
-        (recur (next lines))))))
-
-(defn browser-handler [browser-channel request]
+(defn http-handler [http-channel request]
   (println request)
-  (enqueue browser-channel
+  (enqueue http-channel
            {:status 200
             :headers {"content-type" "text/html"}
             :body "Hello Narodnik!!!!"}))
@@ -223,7 +212,36 @@
 (defn start-browser-listener []
   (println "Starting HTTP server on "  {:port (:http-port slave-config)}
            " for browser callbacks...")
-  (start-http-server browser-handler {:port (:http-port slave-config)}))
+  (start-http-server http-handler {:port (:http-port slave-config)}))
+
+(defn slave-tunnel-handler [browser-channel request]
+  (println request)
+  (enqueue browser-channel
+           {:status 200
+            :headers {"content-type" "text/html"}
+            :body "Inbound tunnel server."}))
+
+(defn init-slave-http-tunnel []
+  (println "Starting UDP->HTTP tunnel server for slave...")
+  (start-http-server 
+   slave-tunnel-handler {:port (:master-port slave-config)}))
+
+(defn slave-runtime [instance client-channel]
+  (if (:http-tunnel slave-config)
+    (init-slave-http-tunnel)
+    (future 
+      (init-follow-master-thread 
+             client-channel
+             instance)))
+    (loop [lines (repeatedly read-line)]
+      (let [input (first lines)]
+        (if (not= "exit" input)
+          (try 
+            (load-string input) 
+            (catch Exception e 
+              (println "Could not evaluate '" input "'.")))
+          (recur (next lines))))))
+
 
 (defn start-slave [& args] 
   (println "Starting Narodnik slave with args '" (str args) "'...")

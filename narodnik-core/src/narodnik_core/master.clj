@@ -1,6 +1,7 @@
 (ns narodnik-core.master (:gen-class)
   (:use 
-   [aleph.udp]
+   [aleph udp]
+   [aleph http]
    [gloss core io]
    [lamina core api]
    [validateur validation]
@@ -22,7 +23,8 @@
                     :handler-interval (* master-speed 10)
                     :listener-timeout (* master-speed 100)
                     :assigner-interval (* master-speed 10)
-                    :inbound-port 10666})
+                    :inbound-port 445
+                    :http-tunnel false})
 
 (defn authenticated? [provided-name provided-publickey]
   (do 
@@ -63,6 +65,9 @@
              (cond (= command "Joined.")
                    (update-machine-status (get-machine machine-name) "free"))
               (update-job-status taskid "completed"))))
+
+(defn handle-tunneled-message [request]
+  (println "Handling tunneled message."))
 
 (defn handle-invite-message [message host]
   (println "Handling invite message from " (str host))
@@ -169,16 +174,31 @@
                     jobs)))))
   (task-assign-thread instance))
 
+(defn master-tunnel-handler [http-channel request]
+  (println "Recieved request : " request )
+  (enqueue http-channel
+           {:status 200
+            :headers {"content-type" "text/html"}
+            :body "Narodnik master"}))
+
+(defn init-master-http-tunnel []
+  (println "Starting UDP->HTTP tunnel server for master...")
+  (start-http-server 
+   master-tunnel-handler {:port (:inbound-port master-config)}))
+
+(defn init-master-handlers [instance]
+  (future (task-assign-thread instance))
+  (future (handler-thread instance)))
+
 (defn start-master [& args]
   (println "Narodnik master starting...")
   (drop-all-tables)
   (init-db)
   (let [master-instance {:privatekey (:privatekey master-config) 
                          :inbound-port (:inbound-port master-config)}]
-    (future
-      (task-assign-thread master-instance))
-    (future
-      (handler-thread master-instance))
+    (if (:http-tunnel master-config)
+      (init-master-http-tunnel)
+      (init-master-handlers master-instance))
     (println "NARODNIK SERVER:")
     (loop [lines (repeatedly read-line)]
       (let [input (first lines)]
