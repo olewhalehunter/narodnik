@@ -1,7 +1,7 @@
-(ns narodnik-server.exchange
+(ns narodnik-core.exchange
   (:use 
    [lamina core api]
-   [narodnik-server data]))
+   [narodnik-core data]))
 
 (use '[clojure.java.shell :only [sh]])
 
@@ -46,7 +46,6 @@
   (give-all-job "(sh \"C:/Program Files (x86)/Mozilla Firefox/firefox.exe\")")
   (dotimes [n 50]
     (give-all-job 
-    "(println \"Hello Narodnik!\")"))
+    "(println \"Hello Narodnik!\")")))
 
-(give-all-job "(println \"Hello Narodnik!\")")
  

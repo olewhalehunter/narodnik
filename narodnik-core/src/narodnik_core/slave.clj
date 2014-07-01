@@ -1,8 +1,8 @@
-(ns narodnik-client.core (:gen-class)
+(ns narodnik-core.slave (:gen-class)
     (:use 
      [aleph udp]
      [lamina core api]))
-(use '[clojure.java.shell :only [sh]])
+
 (comment
   ;; workflow structure
 
@@ -62,7 +62,7 @@
    }}
   )
 
-(def speed 75)
+(def slave-speed 75)
 
 (def slave-config {
                    :privatekey "narodnikkey"
@@ -70,8 +70,8 @@
                    :master-port 10666
                    :suppress-output false
                    :num-contact-attempts 20
-                   :handler-interval (* 10 speed)
-                   :listener-timout (* 10 speed)})
+                   :handler-interval (* 10 slave-speed)
+                   :listener-timout (* 10 slave-speed)})
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
@@ -208,7 +208,7 @@
             (println "Could not evaluate '" input "'.")))
         (recur (next lines))))))
 
-(defn -main [& args] 
+(defn start-slave [& args] 
   (println "Starting Narodnik slave with args '" (str args) "'...")
   (if (not (= (count args) 3))
     (println  

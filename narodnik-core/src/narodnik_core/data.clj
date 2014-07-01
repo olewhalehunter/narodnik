@@ -1,6 +1,6 @@
-(ns narodnik-server.data
+(ns narodnik-core.data
   (:use [lamina core api]
-        [narodnik-server library])
+        [narodnik-core library])
   (:require 
    [clojure.java.jdbc :as sql]))
 

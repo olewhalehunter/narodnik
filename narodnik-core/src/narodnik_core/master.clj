@@ -1,12 +1,12 @@
-(ns narodnik-server.handler (:gen-class)
+(ns narodnik-core.master (:gen-class)
   (:use 
    [aleph.udp]
    [gloss core io]
    [lamina core api]
    [validateur validation]
-   [narodnik-server library]
-   [narodnik-server data]
-   [narodnik-server exchange]))
+   [narodnik-core library]
+   [narodnik-core data]
+   [narodnik-core exchange]))
 
 (comment todo... (def machine-cache (atom {}))
 
@@ -15,13 +15,13 @@
 (defn dynamic-cache ()) ;... in seperate lookup file?
 )
 
-(def speed 1)
+(def master-speed 1)
 
 (def master-config { 
                     :privatekey "narodnikkey"
-                    :handler-interval (* speed 10)
-                    :listener-timeout (* speed 100)
-                    :assigner-interval (* speed 10)
+                    :handler-interval (* master-speed 10)
+                    :listener-timeout (* master-speed 100)
+                    :assigner-interval (* master-speed 10)
                     :inbound-port 10666})
 
 (defn authenticated? [provided-name provided-publickey]
@@ -169,7 +169,7 @@
                     jobs)))))
   (task-assign-thread instance))
 
-(defn -main [& args]
+(defn start-master [& args]
   (println "Narodnik master starting...")
   (drop-all-tables)
   (init-db)

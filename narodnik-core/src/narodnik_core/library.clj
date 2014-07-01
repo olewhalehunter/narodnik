@@ -1,4 +1,4 @@
-(ns narodnik-server.library)
+(ns narodnik-core.library)
 "Macros and higher order functions."
 
 (defmacro attempt [desc exp]
