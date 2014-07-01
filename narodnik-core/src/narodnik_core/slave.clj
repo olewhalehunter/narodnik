@@ -1,6 +1,7 @@
 (ns narodnik-core.slave (:gen-class)
     (:use 
      [aleph udp]
+     [aleph http]
      [lamina core api]
      [narodnik-core exchange]))
 
@@ -69,10 +70,12 @@
                    :privatekey "narodnikkey"
                    :master-host "localhost" ;10.226.200.173
                    :master-port 10666
+                   :http-port 7070
                    :suppress-output false
                    :num-contact-attempts 20
                    :handler-interval (* 10 slave-speed)
-                   :listener-timout (* 10 slave-speed)})
+                   :listener-timout (* 10 slave-speed)
+                   :browser-runtime true})
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
@@ -210,8 +213,22 @@
             (println "Could not evaluate '" input "'.")))
         (recur (next lines))))))
 
+(defn browser-handler [browser-channel request]
+  (println request)
+  (enqueue browser-channel
+           {:status 200
+            :headers {"content-type" "text/html"}
+            :body "Hello Narodnik!!!!"}))
+
+(defn start-browser-listener []
+  (println "Starting HTTP server on "  {:port (:http-port slave-config)}
+           " for browser callbacks...")
+  (start-http-server browser-handler {:port (:http-port slave-config)}))
+
 (defn start-slave [& args] 
   (println "Starting Narodnik slave with args '" (str args) "'...")
+  (if (:browser-runtime slave-config)
+    (start-browser-listener))
   (if (not (= (count args) 3))
     (println  
      "\n\rArguments should be machineid, publickey, and inbound port.\n\r")

@@ -75,7 +75,6 @@ alert(\"" message "\")
   (let [firefox-str (find-firefox-location)]  
     (sh firefox-str page)))
 
-(run-firefox-page "http://www.reddit.com")
 
 (defn test-method []
   ;(run-firefox-page "http://www.gmail.com")
