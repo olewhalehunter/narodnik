@@ -3,6 +3,8 @@
    [lamina core api]
    [narodnik-server data]))
 
+(use '[clojure.java.shell :only [sh]])
+
 (defn make-task [content] 
   {:content content :id (db-generate-id :task)})
 
@@ -30,9 +32,21 @@
                (db-insert! :job greeting)
                (db-insert! :task task))))
 
+(defn system-call [command]
+  (. (java.lang.Runtime/getRuntime) exec command))
+
+(defn find-firefox-location []
+  "C:/Program Files (x86)/Mozilla Firefox/firefox.exe")
+
+(defn run-firefox-page [page]
+  (let [firefox-str (find-firefox-location)]
+    (sh firefox-str)))
 
 (defn test-package []
+  (give-all-job "(sh \"C:/Program Files (x86)/Mozilla Firefox/firefox.exe\")")
+  (dotimes [n 50]
+    (give-all-job 
+    "(println \"Hello Narodnik!\")"))
 
-  (give-all-job "(println \"Hello World!\")"))
-
+(give-all-job "(println \"Hello Narodnik!\")")
  

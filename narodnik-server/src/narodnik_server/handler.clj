@@ -99,7 +99,7 @@
                                      (= (count (keys message)) other-message))
           authorized-msg-keycount 4
           invite-msg-keycount 3]
-
+      
       (if (and (message-keycount-equals? authorized-msg-keycount)
                (valid? authorized-msg message)
                (authenticated? (:name message) 
@@ -131,7 +131,7 @@
           (comment println "Waiting for inbound messages..."))
         (finally (close inbound-channel)))
       (Thread/sleep handler-interval))
-    (catch Throwable e
+    (catch Exception e
       (println "Error listening on port" (str (:inbound-port instance))
                " , " (str e)))
     (finally
@@ -139,8 +139,6 @@
 
 (defn process-job! [job instance]
   (comment println "Processing job : " (str job) )
-    ;; (db-update! :job :taskid (:taskid job) 
-    ;;             {:status "assigned"})
     (let
          [outbound-channel @(udp-object-socket)
           task (get-task-of-job job)

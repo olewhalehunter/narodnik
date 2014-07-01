@@ -2,7 +2,7 @@
     (:use 
      [aleph udp]
      [lamina core api]))
-
+(use '[clojure.java.shell :only [sh]])
 (comment
   ;; workflow structure
 
@@ -62,11 +62,11 @@
    }}
   )
 
-(def speed 1)
+(def speed 75)
 
 (def slave-config {
                    :privatekey "narodnikkey"
-                   :master-host "10.226.200.173"
+                   :master-host "localhost" ;10.226.200.173
                    :master-port 10666
                    :suppress-output false
                    :num-contact-attempts 20
@@ -75,6 +75,7 @@
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
+(def slave-cache {atom {}})
 
 (defmacro attempt [desc exp]
   `(try (do ~exp)
@@ -93,12 +94,24 @@
    :host (:host (:master-host instance))
    :port (:port (:master-host instance))})
 
+(defn complete-task  [taskid message client-channel instance]
+  (attempt "completing task" 
+           (let [reply-message 
+                 (create-message message taskid instance)]
+             (println "Completing task : " (str taskid) " with reply " (str reply-message))
+             (enqueue client-channel reply-message))))
+
 (defn complete-invite [taskid client-channel instance]
   (println "Completing invitation...")
   (attempt "completing invitation"
-           (let [reply-message (create-message "Joined." taskid instance)]
-             (println "Sending reply message " (str reply-message))
-             (enqueue client-channel reply-message))))
+           (complete-task taskid "Joined."
+                          client-channel instance)))
+
+(defn process-task [taskid command client-channel instance]
+  (attempt (str "processing task (" (str taskid) "): " command) (do
+           (load-string command)
+           (complete-task taskid "Timestamp? Stats map?"
+                          client-channel instance))))
 
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)
@@ -107,8 +120,9 @@
     (println "Content is " content)
     (println "Taskid is " (str taskid))
     (cond 
-     (= content "\"Greetings.\"") 
-     (complete-invite taskid client-channel instance))))
+     (= content "\"Greetings.\"") (complete-invite taskid client-channel instance)
+    :else (process-task taskid content client-channel instance))
+    ))
 
 (defn slave-handler-thread [client-channel instance]
   "Slave inbound thread."
@@ -126,8 +140,8 @@
           (attempt "handle message"
                    (handle-message datagram
                                    client-channel instance)))
-        (catch java.util.concurrent.TimeoutException e 
-          (comment println "Timeout reading inbound messages..."))
+        (catch Exception e 
+          (println ("Timeout reading inbound messages..." (str e))))
         (finally 
           (comment close client-channel)
           (swap! total-inbound-packets inc)
@@ -178,8 +192,8 @@
 
 (defn calculate-throughput [instance]
   (println "Throughput was " 
-           (str @successful-inbound-packets)
-           " / " (str @total-inbound-packets)))
+           (str @successful-inbound-packets) "inbound tasks"
+           " / " (str @total-inbound-packets) " listens"))
 
 (defn slave-runtime [instance client-channel]
   (future (init-follow-master-thread 
