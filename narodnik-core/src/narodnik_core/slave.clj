@@ -2,6 +2,7 @@
     (:use 
      [aleph udp]
      [aleph http]
+     [aleph formats]
      [lamina core api]
      [narodnik-core exchange]
      [narodnik-core slave]))
@@ -80,7 +81,7 @@
                    :http-tunnel false
                    :tunnel-port 445})
 
-(def state-cache (atom {}))
+(def state-cache (atom []))
 
 (defn merge-state-cache [subset]
   (swap! state-cache
@@ -211,12 +212,49 @@
            (str @successful-inbound-packets) "inbound tasks"
            " / " (str @total-inbound-packets) " listens"))
 
+(defn return-template-list [http-channel]
+  (println "Returning forms...")
+  (attempt "returning forms"
+              (enqueue http-channel
+                       {:status 200
+                        :headers {"content-type" "text/html"}
+                        :body (str 
+                               (map :template @state-cache))})))
+
+(defn return-form-list [http-channel template-name]
+  (let [template-set (filter (fn [x] (= (:template x) template-name)) @state-cache)]
+    (let [form-list 
+          (interleave
+           (map :name (:forms template-set))
+           (map :content (:forms template-set)))]
+      (enqueue http-channel {
+                             :status 200 
+                             :headers {"content-type" "text/plain"}
+                             :body (str form-list)}))))
+
+(clojure.string/split "hello world" #"\s+")
+
 (defn http-handler [http-channel request]
-  (println request)
-  (enqueue http-channel
-           {:status 200
-            :headers {"content-type" "text/html"}
-            :body "Hello Narodnik!!!!"}))
+  (let [body (bytes->string (:body request))]
+    (println "Recieved request : " request)
+    (if body
+      (cond 
+       (= body "getforms") (return-template-list http-channel)
+       (= (first (clojure.string/split (bytes->string (:body request)) #"\s+"))
+          "get") (return-form-list http-channel (second 
+                                                 (clojure.string/split (bytes->string (:body request)) #"\s+")))
+          :else (doall
+                 (enqueue http-channel
+                          {:status 200
+                           :headers {"content-type" "text/plain"}
+                           :body "Hello Narodnik!!!!"})
+                 (attempt "loading browser request"
+                          (merge-state-cache (load-string body)))
+                 (println "State cache after request is " state-cache)))
+      (enqueue http-channel
+               {:status 200
+                :headers {"content-type" "text/plain"}
+                :body "Hello Narodnik!!!!"}))))
 
 (defn start-browser-listener []
   (println "Starting HTTP server on "  {:port (:http-port slave-config)}

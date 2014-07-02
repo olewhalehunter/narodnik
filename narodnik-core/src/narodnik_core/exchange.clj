@@ -48,9 +48,9 @@ user-agent/bot DSL." )
 ; ->
 ; [{:key :value :collectionid}]
 
-;; {:template "firstname" :forms [
-;;                           {:name "jforms" :content "john"}
-;;                           {:name "testsuite" :content "valid"}]}
+{:template "firstname" :forms [
+                          {:name "jforms" :content "john"}
+                          {:name "testsuite" :content "valid"}]}
 
 (defn greet-slave-job! [machine]
            (let [task (make-task "\"Greetings.\"")] 
