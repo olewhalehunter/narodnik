@@ -3,7 +3,8 @@
      [aleph udp]
      [aleph http]
      [lamina core api]
-     [narodnik-core exchange]))
+     [narodnik-core exchange]
+     [narodnik-core slave]))
 
 (comment
   ;; workflow structure
@@ -79,9 +80,16 @@
                    :http-tunnel false
                    :tunnel-port 445})
 
+(def state-cache (atom {}))
+
+(defn merge-state-cache [subset]
+  (swap! state-cache
+         (fn [x] (merge x subset))))
+
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
-(def slave-cache {atom {}})
+
+;(declare slave-cache) ; (atom {}) ; in exchange.clj
 
 (defmacro attempt [desc exp]
   `(try (do ~exp)
@@ -114,21 +122,22 @@
                           client-channel instance)))
 
 (defn process-task [taskid command client-channel instance]
-  (attempt (str "processing task (" (str taskid) "): " command) (do
+  (attempt (str "processing task (" (str taskid) "): " command) 
            (cond
-            (= command "test-package") (test-method))
-           (complete-task taskid "Timestamp? Stats map?"
-                          client-channel instance))))
+            (= command "test-package") (test-method)
+            :else (load-string command)))
+  (complete-task taskid "Timestamp? Stats map?"
+                 client-channel instance))
 
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)
-  (let [content (:content (:body (:message message)))
+  (let [command (:content (:body (:message message)))
         taskid (:id (:body (:message message)))]
-    (println "Content is " content)
+    (println "Content is " command)
     (println "Taskid is " (str taskid))
     (cond 
-     (= content "\"Greetings.\"") (complete-invite taskid client-channel instance)
-    :else (process-task taskid content client-channel instance))
+     (= command "\"Greetings.\"") (complete-invite taskid client-channel instance)
+    :else (process-task taskid command client-channel instance))
     ))
 
 (defn slave-handler-thread [client-channel instance]
@@ -226,7 +235,7 @@
   (start-http-server 
    slave-tunnel-handler {:port (:master-port slave-config)}))
 
-(defn slave-runtime [instance client-channel]
+(defn init-slave-runtime [instance client-channel]
   (if (:http-tunnel slave-config)
     (init-slave-http-tunnel)
     (future 
@@ -241,7 +250,6 @@
             (catch Exception e 
               (println "Could not evaluate '" input "'.")))
           (recur (next lines))))))
-
 
 (defn start-slave [& args] 
   (println "Starting Narodnik slave with args '" (str args) "'...")
@@ -264,7 +272,7 @@
           client-channel @(udp-object-socket 
                            {:port (:inbound-port slave-instance)})]
        (time (doall
-              (slave-runtime slave-instance
+              (init-slave-runtime slave-instance
                              client-channel)))
        (close client-channel)
        (calculate-throughput slave-instance))))

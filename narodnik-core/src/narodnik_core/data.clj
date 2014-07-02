@@ -48,6 +48,7 @@
                        [:key :text]
                        [:value :text]
                        [:counter :bigint]
+                       [:collectionid :text]
                        [:machineid :bigint]]
 ])
 
@@ -85,10 +86,11 @@
   (let [query 
                (str "select * from " (name table)
                    " where " (name key) "=" (str value))]
-    (query-db database  query)))
+    (query-db database query)))
 
 (defn db-select-all [table]
-  (query-db database (str "select * from " (name table))))
+  (sql/query database 
+              (str "select * from " (name table))))
 
 (defn db-insert! [table object]
   (insert-db! database table object))
@@ -109,7 +111,7 @@
   (println "Setting up database...")
   (create-tables))
 
-(defn most-important-undone-job [] "for assignment thread (pipeline)"
+(defn most-important-undone-job [] "temp for assignment thread"
   (first (db-select :job :status "'undone'")))
 
 (defn get-task-of-job [job]

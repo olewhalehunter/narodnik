@@ -9,6 +9,8 @@
 narodnik-reliant runtime client packages, the 
 user-agent/bot DSL." )
 
+(def slave-cache (atom {}))
+
 (use '[clojure.java.shell :only [sh]])
 
 (defn make-task [content] 
@@ -30,13 +32,41 @@ user-agent/bot DSL." )
     (map (fn [slave] (let [task (make-task message)]
                   (db-insert! :task task)
                   (db-insert! :job (make-job task slave))))
-         machines))) ; redef as macro? <3<3<3
+         machines))) 
+
+(defn merge-slave-state [machine]
+  (let [state (db-select-all :dictionary)]
+    (let [task (make-task (str "(merge-state-cache " state))]
+      (let [state-update-job (make-job task machine)]
+        (db-insert! :job state-update-job)
+        (db-insert! :task task)))))
+
+;; { :pagename
+;;   :testset
+;;  [ {:field "elementid"
+;;     :value}]
+; ->
+; [{:key :value :collectionid}]
+
+;; {:template "firstname" :forms [
+;;                           {:name "jforms" :content "john"}
+;;                           {:name "testsuite" :content "valid"}]}
 
 (defn greet-slave-job! [machine]
            (let [task (make-task "\"Greetings.\"")] 
              (let [greeting (make-job task machine) ]
                (db-insert! :job greeting)
                (db-insert! :task task))))
+
+(defn create-new-form [page-name ; client local, push state with handle json request
+                       form-name
+                       machine-name 
+                       forms-list]
+  (swap! slave-cache
+         (fn [templates] 
+           (merge templates
+                  {:template "firstname" :forms forms-list}))))
+
 
 ; System I/O calls on Winblows only for now
 
@@ -75,6 +105,9 @@ alert(\"" message "\")
   (let [firefox-str (find-firefox-location)]  
     (sh firefox-str page)))
 
+(defn get-form-names [pagename])
+
+;(defn get-form-map [testset]) ; -> [{:elementId "userform" :value "jackblack"}]
 
 (defn test-method []
   ;(run-firefox-page "http://www.gmail.com")
