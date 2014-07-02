@@ -244,17 +244,18 @@
           "get") (return-form-list http-channel (second 
                                                  (clojure.string/split (bytes->string (:body request)) #"\s+")))
           :else (doall
+                 (println "Body was " body
                  (enqueue http-channel
                           {:status 200
                            :headers {"content-type" "text/plain"}
                            :body "Hello Narodnik!!!!"})
                  (attempt "loading browser request"
                           (merge-state-cache (load-string body)))
-                 (println "State cache after request is " state-cache)))
+                 (println "State cache after request is " state-cache)))))
       (enqueue http-channel
                {:status 200
                 :headers {"content-type" "text/plain"}
-                :body "Hello Narodnik!!!!"}))))
+                :body "Hello Narodnik!!!!"})))
 
 (defn start-browser-listener []
   (println "Starting HTTP server on "  {:port (:http-port slave-config)}
