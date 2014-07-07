@@ -1,7 +1,6 @@
-# NARODNIK
-# народник
+# народник - Narodnik
 
-A distributed user agent network in Clojure. 
+A distributed user agent system in Clojure. 
 
 Use Narodnik to...:
 
@@ -16,20 +15,31 @@ See files in \dev-environ.
 
 ## TO-DO
 
-narodnik-server:
 
-* workflow packages
-* ? allowed evals lookup for client callbacks in each package?
-* crud api and sample workflow
+master:
+
+* slave task/state caching
+* schedule trigger
+* package structure
+* browser api
+* master->slave crud api
+
+slave:
+
+* slave deploy/install folder structure
+* http callback for json feedback from browser runtimes
+* write-userscript templating lib (scriptish)
+* create sample workflow packages
 
 security and networking/package:
 
-* eval scoping/isolation api, limited to package defns, byte-compiled msgs
+* byte compiled package messages
+* encryption/compression
 * p2p communication and chaining with common state
 * dynamic port allocation/reassignment
 * request per-ip throttle
 * buffer limit
-* tunneling over non-udp protocol
+* tunneling over http
 
 speed & optimization:
 
@@ -43,13 +53,6 @@ future other:
 * ^ example of above is db inserts created from existing state data, (foreach widget insert...)
 * ...for cross-db state merging (for scaling master instances)
 * schema tinkering, batch query optimization
-
-narodnik-client:
-
-* slave deploy/install folder structure
-* http callback for json feedback from browser runtimes
-* write-userscript templating lib (scriptish)
-* create sample workflow packages
 
 installer:
 

@@ -9,7 +9,7 @@
 narodnik-reliant runtime client packages, the 
 user-agent/bot DSL." )
 
-(def slave-cache (atom {}))
+(def slave-cache (atom []))
 
 (use '[clojure.java.shell :only [sh]])
 
@@ -36,37 +36,16 @@ user-agent/bot DSL." )
 
 (defn merge-slave-state [machine]
   (let [state (db-select-all :dictionary)]
-    (let [task (make-task (str "(merge-state-cache " state))]
+    (let [task (make-task (str "(merge-slave-cache " state))]
       (let [state-update-job (make-job task machine)]
         (db-insert! :job state-update-job)
         (db-insert! :task task)))))
-
-;; { :pagename
-;;   :testset
-;;  [ {:field "elementid"
-;;     :value}]
-; ->
-; [{:key :value :collectionid}]
-
-{:template "firstname" :forms [
-                          {:name "jforms" :content "john"}
-                          {:name "testsuite" :content "valid"}]}
 
 (defn greet-slave-job! [machine]
            (let [task (make-task "\"Greetings.\"")] 
              (let [greeting (make-job task machine) ]
                (db-insert! :job greeting)
                (db-insert! :task task))))
-
-(defn create-new-form [page-name ; client local, push state with handle json request
-                       form-name
-                       machine-name 
-                       forms-list]
-  (swap! slave-cache
-         (fn [templates] 
-           (merge templates
-                  {:template "firstname" :forms forms-list}))))
-
 
 ; System I/O calls on Winblows only for now
 
@@ -75,9 +54,6 @@ user-agent/bot DSL." )
 
 (defn find-firefox-location []
   "C:/Program Files (x86)/Mozilla Firefox/firefox.exe")
-
-; C:\Users\finduser\AppData\Roaming\Mozilla\Firefox\Profiles\x1d8zrt8.default\scriptish_scripts
-;"C:/Users//AppData/Roaming/Mozilla/Firefox/Profiles/x1d8zrt8.default/scriptish_scripts/"
 
 (defn get-user-name []
   (clojure.string/trim-newline 
@@ -107,16 +83,28 @@ alert(\"" message "\")
 
 (defn get-form-names [pagename])
 
-;(defn get-form-map [testset]) ; -> [{:elementId "userform" :value "jackblack"}]
-
 (defn test-method []
-  ;(run-firefox-page "http://www.gmail.com")
-  (spit (str (find-userscript-location) "testjs.js") 
-        (userscript-template 
-         "hello world" 
-         "http://www.reddit.com/*"
-         "HELLO NARODNIK!")))
+  (println "HELLO NARODNIK!"))
 
 (defn test-package []
     (give-all-job "test-package"))
 
+(defn return-template-list [http-channel]
+  (println "Returning forms...")
+  (attempt "returning forms"
+              (enqueue http-channel
+                       {:status 200
+                        :headers {"content-type" "text/html"}
+                        :body (str 
+                               (map :template @slave-cache))})))
+
+(defn return-form-list [http-channel template-name]
+  (let [template-set (filter (fn [x] (= (:template x) template-name)) @slave-cache)]
+    (let [form-list 
+          (interleave
+           (map :name (:forms template-set))
+           (map :content (:forms template-set)))]
+      (enqueue http-channel {
+                             :status 200 
+                             :headers {"content-type" "text/plain"}
+                             :body (str form-list)}))))
