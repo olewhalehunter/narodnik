@@ -19,6 +19,8 @@ See files in \dev-environ.
 master:
 
 * slave task/state caching
+* cache structure
+* clojure time
 * schedule trigger
 * package structure
 * browser api

@@ -10,6 +10,7 @@ narodnik-reliant runtime client packages, the
 user-agent/bot DSL." )
 
 (def slave-cache (atom []))
+(def task-cache (atom {}))
 
 (use '[clojure.java.shell :only [sh]])
 

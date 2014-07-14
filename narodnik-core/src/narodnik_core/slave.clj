@@ -61,6 +61,8 @@
   (complete-task taskid "Timestamp? Stats map?"
                  client-channel instance))
 
+(defn already-processed? [taskid] true)
+
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)
   (let [command (:content (:body (:message message)))
@@ -69,8 +71,9 @@
     (println "Taskid is " (str taskid))
     (cond 
      (= command "\"Greetings.\"") (complete-invite taskid client-channel instance)
-    :else (process-task taskid command client-channel instance))
-    ))
+     :else 
+     (process-task 
+      taskid command client-channel instance))))
 
 (defn slave-handler-thread [client-channel instance]
   "Slave inbound thread."
@@ -143,19 +146,11 @@
            (str @successful-inbound-packets) "inbound tasks"
            " / " (str @total-inbound-packets) " listens"))
 
-
-
-(clojure.string/split "hello world" #"\s+")
-
 (defn http-handler [http-channel request]
   (let [body (bytes->string (:body request))]
     (println "Recieved request : " request)
     (if body
       (cond 
-       (= body "getforms") (return-template-list http-channel)
-       (= (first (clojure.string/split (bytes->string (:body request)) #"\s+"))
-          "get") (return-form-list http-channel (second 
-                                                 (clojure.string/split (bytes->string (:body request)) #"\s+")))
           :else (doall
                  (println "Body was " body
                  (enqueue http-channel
