@@ -30,8 +30,16 @@ slave:
 
 * slave deploy/install folder structure
 * http callback for json feedback from browser runtimes
-* write-userscript templating lib (scriptish)
+* write-userscript templating lib (scriptish) **
 * create sample workflow packages
+
+Browser Runtime API ** :
+
+* default methods/values:
+* collection of forms on names with identifiers:
+* collection of images on page
+* 
+
 
 security and networking/package:
 
