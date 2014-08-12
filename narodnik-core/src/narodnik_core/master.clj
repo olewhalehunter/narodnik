@@ -23,7 +23,7 @@
                     :handler-interval (* master-speed 10)
                     :listener-timeout (* master-speed 100)
                     :assigner-interval (* master-speed 10)
-                    :inbound-port 445
+                    :inbound-port 10777
                     :http-tunnel false})
 
 (defn authenticated? [provided-name provided-publickey]

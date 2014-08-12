@@ -9,10 +9,12 @@
 
 (def slave-speed 75)
 
+(def slave-cache (atom []))
+
 (def slave-config {
                    :privatekey "narodnikkey"
-                   :master-host "85f54r1.hs.mdmgr.net" 
-                   :master-port 445
+                   :master-host "localhost" 
+                   :master-port 10777
                    :http-port 7070
                    :suppress-output false
                    :num-contact-attempts 20

@@ -59,7 +59,7 @@
            :subprotocol "postgresql"
            :subname (str "//" db-host ":" db-port "/" db-name)
            :user "postgres"
-           :password "Sage@123"}))
+           :password "URA!URA!URA!"}))
 
 (def create-table sql/create-table-ddl)
 

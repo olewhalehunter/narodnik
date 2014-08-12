@@ -53,8 +53,11 @@ user-agent/bot DSL." )
 (defn system-call [command] 
   (:out (sh "cmd" "/C" command)))
 
+(comment "windows location"
+         "C:/Program Files (x86)/Mozilla Firefox/firefox.exe")
+
 (defn find-firefox-location []
-  "C:/Program Files (x86)/Mozilla Firefox/firefox.exe")
+  "firefox")
 
 (defn get-user-name []
   (clojure.string/trim-newline 
@@ -86,6 +89,8 @@ alert(\"" message "\")
 
 (defn test-method []
   (println "HELLO NARODNIK!"))
+
+(run-firefox-page "http://www.google.com")
 
 (defn test-package []
     (give-all-job "test-package"))
