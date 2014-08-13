@@ -9,11 +9,12 @@
    [narodnik-core data]
    [narodnik-core exchange]))
 
-(comment todo... (def machine-cache (atom {}))
+(comment todo... 
 
-(def host-cache (atom {}))
+(def machine-cache (atom {}))
 
-(defn dynamic-cache ()) ;... in seperate lookup file?
+(def master-cache (atom {}))
+
 )
 
 (def master-speed 25)

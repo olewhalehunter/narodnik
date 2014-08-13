@@ -3,6 +3,7 @@
    [lamina core api]
    [narodnik-core library]
    [narodnik-core data]))
+
 (use '[clojure.java.shell :only [sh]])
 
 (comment "Narodnik packages"...
@@ -10,10 +11,16 @@
 narodnik-reliant runtime client packages, the 
 user-agent/bot DSL." )
 
-(def slave-cache (atom []))
+(def slave-task-cache (atom #{}))
 
-(defn add-task-to-cache [cache-subset]
-  (println "eureka"))
+(comment 
+  (def sample-task 
+    {:taskid 10667 :command "Nycommand"})
+
+  (def other-task
+    {:taskid 10668 :command "anderecommand"})
+  )
+
 
 (defn make-task [content] 
   {:content content :id (db-generate-id :task)})
@@ -35,13 +42,6 @@ user-agent/bot DSL." )
                   (db-insert! :task task)
                   (db-insert! :job (make-job task slave))))
          machines))) 
-
-(defn merge-slave-state [machine]
-  (let [state (db-select-all :dictionary)]
-    (let [task (make-task (str "(merge-slave-cache " state))]
-      (let [state-update-job (make-job task machine)]
-        (db-insert! :job state-update-job)
-        (db-insert! :task task)))))
 
 (defn greet-slave-job! [machine]
            (let [task (make-task "\"Greetings.\"")] 
@@ -103,15 +103,17 @@ alert(\"" message "\")
 (test-package)
 
 (defn return-template-list [http-channel]
+  (comment
   (println "Returning forms...")
   (attempt "returning forms"
               (enqueue http-channel
                        {:status 200
                         :headers {"content-type" "text/html"}
                         :body (str 
-                               (map :template @slave-cache))})))
+                               (map :template @slave-task-cache))}))))
 
 (defn return-form-list [http-channel template-name]
+  (comment
   (let [template-set (filter (fn [x] (= (:template x) template-name)) @slave-cache)]
     (let [form-list 
           (interleave
@@ -120,7 +122,7 @@ alert(\"" message "\")
       (enqueue http-channel {
                              :status 200 
                              :headers {"content-type" "text/plain"}
-                             :body (str form-list)}))))
+                             :body (str form-list)})))))
 
 (defn slave-api [command]
   (cond 

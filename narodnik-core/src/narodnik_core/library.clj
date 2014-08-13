@@ -1,5 +1,5 @@
-(ns narodnik-core.library)
-"Macros and higher order fn's."
+(ns narodnik-core.library
+  "Macros and higher order fn's.")
 
 (defmacro attempt [desc exp]
   `(try ~exp

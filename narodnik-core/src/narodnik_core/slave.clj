@@ -22,9 +22,12 @@
                    :http-tunnel false
                    :tunnel-port 445})
 
-(defn merge-slave-cache [subset]
-  (swap! slave-cache
-         (fn [x] (merge x subset))))
+(defn update-slave-tasks [new-task]
+  (swap! slave-task-cache
+         (fn [x] (clojure.set/union 
+                 x
+                 #{new-task}
+                 ))))
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
@@ -148,23 +151,24 @@
            " / " (str @total-inbound-packets) " listens"))
 
 (defn http-handler [http-channel request]
-  (let [body (bytes->string (:body request))]
-    (println "Recieved request : " request)
-    (if body
-      (cond 
-          :else (doall
-                 (println "Body was " body
-                 (enqueue http-channel
-                          {:status 200
-                           :headers {"content-type" "text/plain"}
-                           :body "Hello Narodnik!!!!"})
-                 (attempt "loading browser request"
-                          (merge-slave-cache (load-string body)))
-                 (println "State cache after request is " slave-cache)))))
+  (comment
+    (let [body (bytes->string (:body request))]
+      (println "Recieved request : " request)
+      (if body
+        (cond 
+         :else (doall
+                (println "Body was " body
+                         (enqueue http-channel
+                                  {:status 200
+                                   :headers {"content-type" "text/plain"}
+                                   :body "Hello Narodnik!!!!"})
+                         (attempt "loading browser request"
+                                  (merge-slave-cache (load-string body)))
+                         (println "State cache after request is " slave-cache)))))
       (enqueue http-channel
                {:status 200
                 :headers {"content-type" "text/plain"}
-                :body "Hello Narodnik!!!!"})))
+                :body "Hello Narodnik!!!!"}))))
 
 (defn start-browser-listener []
   (println "Starting HTTP server on "  {:port (:http-port slave-config)}
