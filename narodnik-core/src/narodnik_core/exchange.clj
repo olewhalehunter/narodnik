@@ -3,6 +3,7 @@
    [lamina core api]
    [narodnik-core library]
    [narodnik-core data]))
+(use '[clojure.java.shell :only [sh]])
 
 (comment "Narodnik packages"...
 "Functions here are to be api for building
@@ -10,9 +11,9 @@ narodnik-reliant runtime client packages, the
 user-agent/bot DSL." )
 
 (def slave-cache (atom []))
-(def task-cache (atom {}))
 
-(use '[clojure.java.shell :only [sh]])
+(defn add-task-to-cache [cache-subset]
+  (println "eureka"))
 
 (defn make-task [content] 
   {:content content :id (db-generate-id :task)})
@@ -48,8 +49,10 @@ user-agent/bot DSL." )
                (db-insert! :job greeting)
                (db-insert! :task task))))
 
-; System I/O calls on Winblows only for now
+;; ---------------------- concerns of machine ^ and slave \/ are muddled 
 
+; System I/O calls on Winblows only for now
+;; remember to develop on 
 (defn system-call [command] 
   (:out (sh "cmd" "/C" command)))
 
@@ -88,12 +91,16 @@ alert(\"" message "\")
 (defn get-form-names [pagename])
 
 (defn test-method []
-  (println "HELLO NARODNIK!"))
+  (println "HELLO NARODNIK!")
+  (run-firefox-page "http://www.google.com"))
 
-(run-firefox-page "http://www.google.com")
+(comment
+  (run-firefox-page "http://www.google.com"))
 
 (defn test-package []
     (give-all-job "test-package"))
+
+(test-package)
 
 (defn return-template-list [http-channel]
   (println "Returning forms...")
@@ -114,3 +121,7 @@ alert(\"" message "\")
                              :status 200 
                              :headers {"content-type" "text/plain"}
                              :body (str form-list)}))))
+
+(defn slave-api [command]
+  (cond 
+   (= command "test-package") (test-method)))

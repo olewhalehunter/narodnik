@@ -9,8 +9,6 @@
 
 (def slave-speed 75)
 
-(def slave-cache (atom []))
-
 (def slave-config {
                    :privatekey "narodnikkey"
                    :master-host "localhost" 
@@ -55,15 +53,16 @@
            (complete-task taskid "Joined."
                           client-channel instance)))
 
+(defn already-recieved-task? [taskid] false)
+
 (defn process-task [taskid command client-channel instance]
   (attempt (str "processing task (" (str taskid) "): " command) 
-           (cond
-            (= command "test-package") (test-method)
-            :else (load-string command)))
+           (cond 
+            (not (already-recieved-task? taskid)) 
+            (slave-api command)
+            :else (println "THAT TASK WAS ALREADY RECIEVED")))
   (complete-task taskid "Timestamp? Stats map?"
                  client-channel instance))
-
-(defn already-processed? [taskid] true)
 
 (defn handle-message [message client-channel instance]
   (println "Handling :" message)

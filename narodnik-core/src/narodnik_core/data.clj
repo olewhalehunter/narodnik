@@ -15,13 +15,13 @@
                        [:hostid :bigint]]
 
                       [:host
+                       [:id :bigint]
                        [:address :text]
-                       [:port :int]
-                       [:id :bigint]]
+                       [:port :int]]
 
                       [:machinegroup 
-                       [:name :text]
-                       [:id :bigint]]
+                       [:id :bigint]
+                       [:name :text]]
 
                       [:groupmember 
                        [:groupid :bigint]
@@ -33,16 +33,18 @@
                        [:index :bigint]]
 
                       [:task
+                       [:id :bigint]
                        [:content :text] ; clojure/json serialized s-exp/obj/message
-                       [:id :bigint]]
+                       [:starttime :text] ; time of execution on host machine
+                       ]
                       
                       [:job
                        [:slavetype :text] ; machine/group
                        [:slaveid :text] 
                        [:taskid :bigint]
                        [:status :text]    ; undone,assigned,in progress,done
-                       [:starttime :text]
-                       [:endtime :text]]
+                       [:starttime :text] ; time of delivery to host machine
+                       [:endtime :text]] ; time completed
 
                       [:dictionary ; for general purpose storage and status flags
                        [:key :text]

@@ -18,13 +18,14 @@ See files in \dev-environ.
 
 master:
 
-* slave task/state caching
 * cache structure
+* slave task/state caching so tasks aren't repeated
 * clojure time
-* schedule trigger
-* package structure
-* browser api
+* scheduled task/action/job triggers
+* package structure~?
 * master->slave crud api
+* database recycling, task string \/
+* (column in task called action like "test-package"/"greetings")
 
 slave:
 
@@ -35,11 +36,11 @@ slave:
 
 Browser Runtime API ** :
 
+* master dictionary state updates
+* slave -> master state piping
 * default methods/values:
 * collection of forms on names with identifiers:
 * collection of images on page
-* 
-
 
 security and networking/package:
 
