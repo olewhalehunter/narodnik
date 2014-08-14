@@ -22,12 +22,15 @@
                    :http-tunnel false
                    :tunnel-port 445})
 
-(defn update-slave-tasks [new-task]
-  (swap! slave-task-cache
-         (fn [x] (clojure.set/union 
-                 x
-                 #{new-task}
-                 ))))
+(defn update-slave-tasks [new-taskid]
+  (attempt "updating slave task"
+           (swap! slave-task-cache
+                  (fn [x] (clojure.set/union 
+                          x
+                          #{new-taskid}
+                          ))))
+  (println "slave task updated!"
+           @slave-task-cache))
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
@@ -56,13 +59,15 @@
            (complete-task taskid "Joined."
                           client-channel instance)))
 
-(defn already-recieved-task? [taskid] false)
+(defn already-recieved-task? [taskid] 
+  (contains? @slave-task-cache taskid))
 
 (defn process-task [taskid command client-channel instance]
   (attempt (str "processing task (" (str taskid) "): " command) 
            (cond 
-            (not (already-recieved-task? taskid)) 
-            (slave-api command)
+            (not (already-recieved-task? taskid)) (doall
+                                                   (slave-api command)
+                                                   (update-slave-tasks taskid))
             :else (println "THAT TASK WAS ALREADY RECIEVED")))
   (complete-task taskid "Timestamp? Stats map?"
                  client-channel instance))

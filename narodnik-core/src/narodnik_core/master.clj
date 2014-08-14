@@ -17,7 +17,7 @@
 
 )
 
-(def master-speed 25)
+(def master-speed 40)
 
 (def master-config { 
                     :privatekey "narodnikkey"

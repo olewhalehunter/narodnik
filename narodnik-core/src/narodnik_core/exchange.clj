@@ -92,7 +92,7 @@ alert(\"" message "\")
 
 (defn test-method []
   (println "HELLO NARODNIK!")
-  (run-firefox-page "http://www.google.com"))
+  (comment run-firefox-page "http://www.google.com"))
 
 (comment
   (run-firefox-page "http://www.google.com"))
