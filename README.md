@@ -5,7 +5,6 @@ A distributed user agent system in Clojure.
 Use Narodnik to...:
 
 * make a networked virtual machine
-* start a botnet
 * automate web testing
 * create distributed and real-time systems
 
@@ -14,10 +13,6 @@ Licensed under the GNU Affero Public License.
 See files in \dev-environ.
 
 ## TO-DO
-
-
-master:
-
 * cache structure
 * slave task/state caching so tasks aren't repeated
 * clojure time
@@ -26,8 +21,6 @@ master:
 * master->slave crud api
 * database recycling, task string \/
 * (column in task called action like "test-package"/"greetings")
-
-slave:
 
 * slave deploy/install folder structure
 * http callback for json feedback from browser runtimes
