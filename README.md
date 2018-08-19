@@ -12,6 +12,8 @@ Distributed Heterogenous Actors Agreements protocol
 * collection of forms on names with identifiers:
 * collection of images on page
 
+# TODO
+
 security and networking/package:
 
 * byte compiled package messages
