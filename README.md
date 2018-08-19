@@ -1,8 +1,7 @@
 # Narodnik
 
-Distributed Heterogenous Actors Agreements protocol
-s-expression contract programming
-
+Distributed Heterogenous Actors Agreements protocol:
+* s-expression contract and schedule specifications
 * subscribe or publish channel specifications
 * process, publish or subscribe to channel schedules
 * declared constraint graph subscriptions
