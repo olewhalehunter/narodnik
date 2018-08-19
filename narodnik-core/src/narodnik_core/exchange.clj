@@ -11,7 +11,7 @@
 narodnik-reliant runtime client packages, the 
 user-agent/bot DSL." )
 
-(def slave-task-cache (atom #{}))
+(def actor-task-cache (atom #{}))
 
 (comment 
   (def sample-task 

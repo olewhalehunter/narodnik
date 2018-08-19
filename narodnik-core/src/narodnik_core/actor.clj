@@ -1,4 +1,4 @@
-(ns narodnik-core.slave (:gen-class)
+(ns narodnik-core.actor (:gen-class)
     (:use 
      [aleph udp]
      [aleph http]
@@ -7,30 +7,30 @@
      [narodnik-core library]
      [narodnik-core exchange] ))
 
-(def slave-speed 75)
+(def actor-speed 75)
 
-(def slave-config {
+(def actor-config {
                    :privatekey "narodnikkey"
-                   :master-host "localhost" 
-                   :master-port 10777
+                   :vm-host "localhost" 
+                   :vm-port 10777
                    :http-port 7070
                    :suppress-output false
                    :num-contact-attempts 20
-                   :handler-interval (* 10 slave-speed)
-                   :listener-timout (* 10 slave-speed)
+                   :handler-interval (* 10 actor-speed)
+                   :listener-timout (* 10 actor-speed)
                    :browser-runtime true
                    :http-tunnel false
                    :tunnel-port 445})
 
-(defn update-slave-tasks [new-taskid]
-  (attempt "updating slave task"
-           (swap! slave-task-cache
+(defn update-actor-tasks [new-taskid]
+  (attempt "updating actor task"
+           (swap! actor-task-cache
                   (fn [x] (clojure.set/union 
                           x
                           #{new-taskid}
                           ))))
-  (println "slave task updated!"
-           @slave-task-cache))
+  (println "actor task updated!"
+           @actor-task-cache))
 
 (def total-inbound-packets (atom 0))
 (def successful-inbound-packets (atom 0))
@@ -43,8 +43,8 @@
              :name (:machineid instance)
              :privatekey (:privatekey instance)
              :publickey (:publickey instance)}
-   :host (:host (:master-host instance))
-   :port (:port (:master-host instance))})
+   :host (:host (:vm-host instance))
+   :port (:port (:vm-host instance))})
 
 (defn complete-task  [taskid message client-channel instance]
   (attempt "completing task" 
@@ -60,14 +60,14 @@
                           client-channel instance)))
 
 (defn already-recieved-task? [taskid] 
-  (contains? @slave-task-cache taskid))
+  (contains? @actor-task-cache taskid))
 
 (defn process-task [taskid command client-channel instance]
   (attempt (str "processing task (" (str taskid) "): " command) 
            (cond 
             (not (already-recieved-task? taskid)) (doall
-                                                   (slave-api command)
-                                                   (update-slave-tasks taskid))
+                                                   (actor-api command)
+                                                   (update-actor-tasks taskid))
             :else (println "THAT TASK WAS ALREADY RECIEVED")))
   (complete-task taskid "Timestamp? Stats map?"
                  client-channel instance))
@@ -84,10 +84,10 @@
      (process-task 
       taskid command client-channel instance))))
 
-(defn slave-handler-thread [client-channel instance]
-  "Slave inbound thread."
-  (let [handler-interval (:handler-interval slave-config)]
-    (println "Slave handler thread...")
+(defn actor-handler-thread [client-channel instance]
+  "actor inbound thread."
+  (let [handler-interval (:handler-interval actor-config)]
+    (println "actor handler thread...")
       (Thread/sleep handler-interval)
       (try
         (println "Waiting for job...")
@@ -105,28 +105,28 @@
         (finally 
           (comment close client-channel)
           (swap! total-inbound-packets inc)
-          (slave-handler-thread client-channel instance)))))
+          (actor-handler-thread client-channel instance)))))
 
-(defn contact-master 
+(defn contact-vm 
 
   [client-channel instance
    num-attempts request-timeout
    invite-message]
 
-    (println "Attempting to contact master...")
+    (println "Attempting to contact vm...")
     (enqueue client-channel invite-message)
     (println "Message sent.")
     (try
-      (println "Waiting for greeting back from master...")
+      (println "Waiting for greeting back from vm...")
       (let [datagram (wait-for-message client-channel 
                                        1000)]
         (println "Recieved from host " (str (:host datagram))
                  " " (str datagram))
-        (slave-handler-thread client-channel instance))
+        (actor-handler-thread client-channel instance))
       (catch java.util.concurrent.TimeoutException e 
         (println "Request for greeting timed out...")
         (if (> num-attempts 0) 
-          (attempt "contacting master" (contact-master 
+          (attempt "contacting vm" (contact-vm 
                                         client-channel 
                                         instance (- num-attempts 1)
                                         request-timeout
@@ -134,18 +134,18 @@
       (finally 
         (comment close client-channel))))
 
-(defn init-follow-master-thread [client-channel instance]
-  (println "Contacting master...")
+(defn init-follow-vm-thread [client-channel instance]
+  (println "Contacting vm...")
   (let [invite-request {
                         :message {
                                   :name (:machineid instance)
                                   :privatekey (:privatekey instance)
                                   :publickey (:publickey instance)}
-                        :host (:host (:master-host instance))
-                        :port (:port (:master-host instance))}
-        num-attempts (:num-contact-attempts slave-config)
-        request-timeout (:listener-timeout slave-config)]
-    (attempt "conctacting master" (contact-master 
+                        :host (:host (:vm-host instance))
+                        :port (:port (:vm-host instance))}
+        num-attempts (:num-contact-attempts actor-config)
+        request-timeout (:listener-timeout actor-config)]
+    (attempt "conctacting vm" (contact-vm 
                                    client-channel instance 
                                    num-attempts request-timeout
                                    invite-request))))
@@ -168,35 +168,35 @@
                                    :headers {"content-type" "text/plain"}
                                    :body "Hello Narodnik!!!!"})
                          (attempt "loading browser request"
-                                  (merge-slave-cache (load-string body)))
-                         (println "State cache after request is " slave-cache)))))
+                                  (merge-actor-cache (load-string body)))
+                         (println "State cache after request is " actor-cache)))))
       (enqueue http-channel
                {:status 200
                 :headers {"content-type" "text/plain"}
                 :body "Hello Narodnik!!!!"}))))
 
 (defn start-browser-listener []
-  (println "Starting HTTP server on "  {:port (:http-port slave-config)}
+  (println "Starting HTTP server on "  {:port (:http-port actor-config)}
            " for browser callbacks...")
-  (start-http-server http-handler {:port (:http-port slave-config)}))
+  (start-http-server http-handler {:port (:http-port actor-config)}))
 
-(defn slave-tunnel-handler [browser-channel request]
+(defn actor-tunnel-handler [browser-channel request]
   (println request)
   (enqueue browser-channel
            {:status 200
             :headers {"content-type" "text/html"}
             :body "Inbound tunnel server."}))
 
-(defn init-slave-http-tunnel []
-  (println "Starting UDP->HTTP tunnel server for slave...")
+(defn init-actor-http-tunnel []
+  (println "Starting UDP->HTTP tunnel server for actor...")
   (start-http-server 
-   slave-tunnel-handler {:port (:master-port slave-config)}))
+   actor-tunnel-handler {:port (:vm-port actor-config)}))
 
-(defn init-slave-runtime [instance client-channel]
-  (if (:http-tunnel slave-config)
-    (init-slave-http-tunnel)
+(defn init-actor-runtime [instance client-channel]
+  (if (:http-tunnel actor-config)
+    (init-actor-http-tunnel)
     (future 
-      (init-follow-master-thread 
+      (init-follow-vm-thread 
              client-channel
              instance)))
     (loop [lines (repeatedly read-line)]
@@ -208,31 +208,31 @@
               (println "Could not evaluate '" input "'.")))
           (recur (next lines))))))
 
-(defn start-slave [& args] 
-  (println "Starting Narodnik slave with args '" (str args) "'...")
-  (if (:browser-runtime slave-config)
+(defn start-actor [& args] 
+  (println "Starting Narodnik actor with args '" (str args) "'...")
+  (if (:browser-runtime actor-config)
     (start-browser-listener))
   (if (not (= (count args) 3))
     (println  
      "\n\rArguments should be machineid, publickey, and inbound port.\n\r")
     (attempt 
-     "narodnik slave-startup"   
+     "narodnik actor-startup"   
      (let 
-         [slave-instance {
+         [actor-instance {
                           :machineid (first args)
                           :publickey (second args)
-                          :privatekey (:privatekey slave-config) 
-                          :master-host {:host (:master-host slave-config)
-                                        :port (:master-port slave-config)}
+                          :privatekey (:privatekey actor-config) 
+                          :vm-host {:host (:vm-host actor-config)
+                                        :port (:vm-port actor-config)}
                           :inbound-port (bigdec (nth args 2))
-                          :suppress-output (:suppress-output slave-config)}
+                          :suppress-output (:suppress-output actor-config)}
           client-channel @(udp-object-socket 
-                           {:port (:inbound-port slave-instance)})]
+                           {:port (:inbound-port actor-instance)})]
        (time (doall
-              (init-slave-runtime slave-instance
+              (init-actor-runtime actor-instance
                              client-channel)))
        (close client-channel)
-       (calculate-throughput slave-instance))))
-    (println "Narodnik slave shutting down...")    
+       (calculate-throughput actor-instance))))
+    (println "Narodnik actor shutting down...")    
     (System/exit 0))
 
