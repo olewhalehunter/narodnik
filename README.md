@@ -1,16 +1,17 @@
 # Narodnik
 
 Distributed Heterogenous Actors Agreements protocol
+s-expression contract programming
 
 * subscribe or publish channel specifications
 * process, publish or subscribe to channel schedules
 * declared constraint graph subscriptions
 * channel modules
+
+# Theory & Implementation
+
 * influenced by Protocol Buffers, Prolog, and the Actor Model
 * "DHA VM" compile to Common Lisp, Clojure, and Python
-* the readme of this file 
-* collection of forms on names with identifiers:
-* collection of images on page
 
 # TODO
 
