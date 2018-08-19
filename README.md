@@ -1,37 +1,14 @@
-# народник - Narodnik
+# Narodnik
 
-A distributed user agent system in Clojure. 
+Distributed Heterogenous Actors Agreements protocol
 
-Use Narodnik to...:
-
-* make a networked virtual machine
-* automate web testing
-* create distributed and real-time systems
-
-Licensed under the GNU Affero Public License.
-
-See files in \dev-environ.
-
-## TO-DO
-* cache structure
-* slave task/state caching so tasks aren't repeated
-* clojure time
-* scheduled task/action/job triggers
-* package structure~?
-* master->slave crud api
-* database recycling, task string \/
-* (column in task called action like "test-package"/"greetings")
-
-* slave deploy/install folder structure
-* http callback for json feedback from browser runtimes
-* write-userscript templating lib (scriptish) **
-* create sample workflow packages
-
-Browser Runtime API ** :
-
-* master dictionary state updates
-* slave -> master state piping
-* default methods/values:
+* subscribe or publish channel specifications
+* process, publish or subscribe to channel schedules
+* declared constraint graph subscriptions
+* channel modules
+* influenced by Protocol Buffers, Prolog, and the Actor Model
+* "DHA VM" compile to Common Lisp, Clojure, and Python
+* the readme of this file 
 * collection of forms on names with identifiers:
 * collection of images on page
 
@@ -55,7 +32,7 @@ future other:
 * iterative state tracking on db, each insert with timetstamp
 * dependent state-changing fn track, store each stateful! sexp eval'd
 * ^ example of above is db inserts created from existing state data, (foreach widget insert...)
-* ...for cross-db state merging (for scaling master instances)
+* ...for cross-db state merging (for scaling vm instances)
 * schema tinkering, batch query optimization
 
 installer:

@@ -39,8 +39,8 @@
                        ]
                       
                       [:job
-                       [:slavetype :text] ; machine/group
-                       [:slaveid :text] 
+                       [:actortype :text] ; machine/group
+                       [:actorid :text] 
                        [:taskid :bigint]
                        [:status :text]    ; undone,assigned,in progress,done
                        [:starttime :text] ; time of delivery to host machine
@@ -54,6 +54,66 @@
                        [:machineid :bigint]]
 ])
 
+(java.security.Security/addProvider
+ (org.bouncycastle.jce.provider.BouncyCastleProvider.))
+
+(def generate-secure-key []
+     "" 
+     )
+
+(defn generate-keys []
+  (let [generator (doto (java.security.KeyPairGenerator/getInstance "RSA" "BC")
+                    (.initialize 1024))]
+		    (.generateKeyPair generator)))
+
+(defn read-keys [f]
+  (-> f
+      java.io.FileReader.
+      org.bouncycastle.openssl.PEMReader.
+      .readObject))
+
+(defn write-keys [f keys]
+  (let [writer (org.bouncycastle.openssl.PEMWriter. (java.io.FileWriter. f))]
+    (.writeObject writer keys)
+    (.flush writer)))
+
+(defn encrypt [bytes public-key]
+  (let [cipher (doto (javax.crypto.Cipher/getInstance "RSA/ECB/PKCS1Padding" "BC")
+                 (.init javax.crypto.Cipher/ENCRYPT_MODE public-key))]
+    (.doFinal cipher bytes)))
+
+
+(defn decrypt [bytes private-key]
+  (let [cipher (doto (javax.crypto.Cipher/getInstance "RSA/ECB/PKCS1Padding" "BC")
+                 (.init javax.crypto.Cipher/DECRYPT_MODE private-key))]
+		 (.doFinal cipher bytes)))
+
+(defn read-to-byte [f]
+  (let [file (java.io.RandomAccessFile. f "r")
+       content (make-array Byte/TYPE (.length file))]
+       (.read file content)
+       content))
+
+(def keys (generate-keys))
+
+(def encrypted (encrypt (.getBytes "Too Many Secrets") (.getPublic keys)))
+(String. (decrypt encrypted (.getPrivate keys)))
+
+
+(def signuture (sign (.getBytes "Too Many Secrets") (.getPrivate keys)))
+(verify signuture (.getBytes "Too Many Secrets") (.getPublic keys))
+
+
+(def keys (read-keys (java.io.File. "/Users/nakkaya/Dropbox/kiler/rsa.pem")))
+
+(def key-string [file]
+  (String. (decrypt
+	    (read-to-byte
+	     (java.io.File. file))
+	    (.getPrivate keys)))
+  )
+
+
 (let [db-host "localhost"
         db-port 5432
         db-name "narodnik"]
@@ -61,7 +121,7 @@
            :subprotocol "postgresql"
            :subname (str "//" db-host ":" db-port "/" db-name)
            :user "postgres"
-           :password "URA!URA!URA!"}))
+           :password (generate-secure-key)}))
 
 (def create-table sql/create-table-ddl)
 
@@ -134,6 +194,6 @@
   (println "Looking up host of machine : " (str machine))
   (first (db-select :host :id (:hostid machine))))
 
-(defn get-slave-of-job [job]
-  (println "Looking up slave for job.")
-  (get-machine (:slaveid job)))
+(defn get-actor-of-job [job]
+  (println "Looking up actor for job.")
+  (get-machine (:actorid job)))

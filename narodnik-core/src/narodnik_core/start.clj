@@ -1,10 +1,10 @@
 (ns narodnik-core.start (:gen-class)
   (:use
-   [narodnik-core master]
-   [narodnik-core slave]))
+   [narodnik-core vm]
+   [narodnik-core actor]))
 
 (defn -main [& args]
   (if (= (count args) 0)
-    (start-master [])
-    (apply start-slave args)))
+    (start-vm [])
+    (apply start-actor args)))
 

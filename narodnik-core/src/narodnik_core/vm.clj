@@ -1,4 +1,4 @@
-(ns narodnik-core.master (:gen-class)
+(ns narodnik-core.actor (:gen-class)
   (:use 
    [aleph udp]
    [aleph http]
@@ -13,17 +13,17 @@
 
 (def machine-cache (atom {}))
 
-(def master-cache (atom {}))
+(def actor-cache (atom {}))
 
 )
 
-(def master-speed 40)
+(def actor-speed 40)
 
-(def master-config { 
+(def actor-config { 
                     :privatekey "narodnikkey"
-                    :handler-interval (* master-speed 10)
-                    :listener-timeout (* master-speed 100)
-                    :assigner-interval (* master-speed 10)
+                    :handler-interval (* actor-speed 10)
+                    :listener-timeout (* actor-speed 100)
+                    :assigner-interval (* actor-speed 10)
                     :inbound-port 10777
                     :http-tunnel false})
 
@@ -88,8 +88,8 @@
                   }]
         (db-insert! :machine machine)
         (db-insert! :host host)
-        (println "Greeting slave :" (str machine))
-        (greet-slave-job! machine)))))
+        (println "Greeting actor :" (str machine))
+        (greet-actor-job! machine)))))
 
 (defn handle-bad-message [message instance] 
   (println " <!> RECIEVED BAD MESSAGE <!> :" (str message)))
@@ -118,10 +118,10 @@
 
 (defn handler-thread [instance]
   "For updating status updates 
-   and CRUD operations from slaves."
+   and CRUD operations from actors."
   (try 
-    (let [timeout (:listener-timeout master-config)
-          handler-interval  (:handler-interval master-config)
+    (let [timeout (:listener-timeout actor-config)
+          handler-interval  (:handler-interval actor-config)
           inbound-channel @(udp-object-socket 
                             {:port (:inbound-port instance)})] ; miliseconds
       (try
@@ -148,25 +148,25 @@
     (let
          [outbound-channel @(udp-object-socket)
           task (get-task-of-job job)
-          slave (get-slave-of-job job)]
-         (println "Found slave : " slave " for job.")
-         (let [slave-host (get-host-of-machine slave)]
+          actor (get-actor-of-job job)]
+         (println "Found actor : " actor " for job.")
+         (let [actor-host (get-host-of-machine actor)]
            (println "Sending task as message :" (str task) 
-                    "to host" (str slave-host))
+                    "to host" (str actor-host))
            (let [message {
                           :message {
                                     :body task
                                     :privatekey (:privatekey instance)}
-                          :host (:address slave-host)
-                          :port (:port slave-host)}]
+                          :host (:address actor-host)
+                          :port (:port actor-host)}]
              (comment print "Sending message : " (str message))
              (attempt "send message channel " 
                       (enqueue outbound-channel message)))
            (println "Job processed."))))
 
 (defn task-assign-thread [instance]
-  (Thread/sleep (:assigner-interval master-config))
-  (println "Assigning tasks from jobs as sent messages to slaves.")
+  (Thread/sleep (:assigner-interval actor-config))
+  (println "Assigning tasks from jobs as sent messages to actors.")
   (attempt "assigning jobs" (doall
            (let [jobs (db-select :job :status "'undone'")]
              (if (not (empty? jobs))
@@ -175,31 +175,31 @@
                     jobs)))))
   (task-assign-thread instance))
 
-(defn master-tunnel-handler [http-channel request]
+(defn actor-tunnel-handler [http-channel request]
   (println "Recieved request : " request )
   (enqueue http-channel
            {:status 200
             :headers {"content-type" "text/html"}
-            :body "Narodnik master"}))
+            :body "Narodnik actor"}))
 
-(defn init-master-http-tunnel []
-  (println "Starting UDP->HTTP tunnel server for master...")
+(defn init-actor-http-tunnel []
+  (println "Starting UDP->HTTP tunnel server for actor...")
   (start-http-server 
-   master-tunnel-handler {:port (:inbound-port master-config)}))
+   actor-tunnel-handler {:port (:inbound-port actor-config)}))
 
-(defn init-master-handlers [instance]
+(defn init-actor-handlers [instance]
   (future (task-assign-thread instance))
   (future (handler-thread instance)))
 
-(defn start-master [& args]
-  (println "Narodnik master starting...")
+(defn start-vm [& args]
+  (println "Narodnik Distributed Actor VM starting...")
   (drop-all-tables)
   (init-db)
-  (let [master-instance {:privatekey (:privatekey master-config) 
-                         :inbound-port (:inbound-port master-config)}]
-    (if (:http-tunnel master-config)
-      (init-master-http-tunnel)
-      (init-master-handlers master-instance))
+  (let [actor-instance {:privatekey (:privatekey actor-config) 
+                         :inbound-port (:inbound-port actor-config)}]
+    (if (:http-tunnel actor-config)
+      (init-actor-http-tunnel)
+      (init-actor-handlers actor-instance))
     (println "NARODNIK SERVER:")
     (loop [lines (repeatedly read-line)]
       (let [input (first lines)]

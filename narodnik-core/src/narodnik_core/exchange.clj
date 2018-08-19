@@ -26,8 +26,8 @@ user-agent/bot DSL." )
   {:content content :id (db-generate-id :task)})
 
 (defn make-job [task machine]{
-                              :slavetype "machine"
-                              :slaveid (str (:name machine) )
+                              :actortype "machine"
+                              :actorid (str (:name machine) )
                               :taskid (:id task)
                               :status "undone"
                               :starttime (datetime-now)
@@ -38,18 +38,18 @@ user-agent/bot DSL." )
   (println "Giving all machines job : " message)
   (let [machines (db-select-all :machine)
         task (make-task message)]
-    (map (fn [slave] (let [task (make-task message)]
+    (map (fn [actor] (let [task (make-task message)]
                   (db-insert! :task task)
-                  (db-insert! :job (make-job task slave))))
+                  (db-insert! :job (make-job task actor))))
          machines))) 
 
-(defn greet-slave-job! [machine]
+(defn greet-actor-job! [machine]
            (let [task (make-task "\"Greetings.\"")] 
              (let [greeting (make-job task machine) ]
                (db-insert! :job greeting)
                (db-insert! :task task))))
 
-;; ---------------------- concerns of machine ^ and slave \/ are muddled 
+;; ---------------------- concerns of machine ^ and actor \/ are muddled 
 
 ; System I/O calls on Winblows only for now
 ;; remember to develop on 
@@ -110,11 +110,11 @@ alert(\"" message "\")
                        {:status 200
                         :headers {"content-type" "text/html"}
                         :body (str 
-                               (map :template @slave-task-cache))}))))
+                               (map :template @actor-task-cache))}))))
 
 (defn return-form-list [http-channel template-name]
   (comment
-  (let [template-set (filter (fn [x] (= (:template x) template-name)) @slave-cache)]
+  (let [template-set (filter (fn [x] (= (:template x) template-name)) @actor-cache)]
     (let [form-list 
           (interleave
            (map :name (:forms template-set))
@@ -124,6 +124,6 @@ alert(\"" message "\")
                              :headers {"content-type" "text/plain"}
                              :body (str form-list)})))))
 
-(defn slave-api [command]
+(defn actor-api [command]
   (cond 
    (= command "test-package") (test-method)))
